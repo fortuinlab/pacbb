@@ -1,0 +1,10 @@
+# TODO: split to multi config
+prior_settings:
+  name: prior_name
+posterior_settings:
+  name: posterior_name
+experiment_settings:
+  dataset_name: mnist
+  dataset_path: ./data/mnist/
+  split_strategy_name: pbp
+

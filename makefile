@@ -6,14 +6,14 @@ black_path = $(env_path)/bin/black
 isort_path = $(env_path)/bin/isort
 lint_path = $(env_path)/bin/pylint
 pytest_path = $(env_path)/bin/pytest
-core_path = app
+core_path = core
 test_path = test
 
 .PHONY: format
 format:
 	@(\
-	$(black_path) $(app_path); \
-	$(isort_path) $(app_path) --skip __init__.py; \
+	$(black_path) $(core_path); \
+	$(isort_path) $(core_path) --skip __init__.py; \
 	$(black_path) $(test_path); \
 	$(isort_path) $(test_path) --skip __init__.py; \
 	)
@@ -21,7 +21,7 @@ format:
 .PHONY: lint
 lint:
 	@(\
-	$(lint_path) $(app_path); \
+	$(lint_path) $(core_path); \
 	$(lint_path) $(test_path); \
 	)
 
