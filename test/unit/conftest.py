@@ -1,6 +1,6 @@
 import pytest
 
-from core.dataset.loader import DatasetLoaderFactory, AbstractLoader
+from core.dataset.loader import AbstractLoader, DatasetLoaderFactory
 
 
 @pytest.fixture(scope="module")

@@ -19,4 +19,3 @@ def test_dataset_loader(dataset_name, dataset_path):
     assert isinstance(test, data.Dataset)
     assert len(train) > 0
     assert len(test) > 0
-
