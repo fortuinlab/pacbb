@@ -1,5 +1,6 @@
-from core.dataset.loader import DatasetLoaderFactory, AbstractLoader
-from core.dataset.split_strategy import SplitStrategyFactory, AbstractSplitStrategy
+from core.dataset.loader import AbstractLoader, DatasetLoaderFactory
+from core.dataset.split_strategy import (AbstractSplitStrategy,
+                                         SplitStrategyFactory)
 
 
 class DatasetHandler:
@@ -40,8 +41,12 @@ class DatasetHandler:
         """
         Load dataset and split it using the specified strategy.
         """
-        dataset_loader = DatasetLoaderFactory().create(dataset_name=self._dataset_name, dataset_path=self._dataset_path)
-        split_strategy = SplitStrategyFactory().create(split_strategy_name=self._split_strategy_name)
+        dataset_loader = DatasetLoaderFactory().create(
+            dataset_name=self._dataset_name, dataset_path=self._dataset_path
+        )
+        split_strategy = SplitStrategyFactory().create(
+            split_strategy_name=self._split_strategy_name
+        )
 
         split_strategy.split(dataset_loader=dataset_loader)
 

@@ -1,5 +1,4 @@
 from core.dataset.loader import AbstractLoader, CIFAR10Loader, MNISTLoader
-
 from core.utils import AbstractFactory
 
 

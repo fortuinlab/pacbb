@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar
 
-
-T = TypeVar('T')  # can be bounded
+T = TypeVar("T")  # can be bounded
 
 
 class AbstractFactory(ABC):
     """
     Abstract Factory class providing a blueprint for factory implementations.
     """
+
     def __init__(self) -> None:
         self._creators: dict[str, Type[T]] = {}
 
