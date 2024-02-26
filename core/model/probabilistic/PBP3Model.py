@@ -64,7 +64,7 @@ class PBP3Model(AbstractPBPModel):
         else:
             return self.l1.kl_div + self.l2.kl_div + self.l3.kl_div
 
-    def set_weights_from_model(self, model: 'PBP3Model') -> None:
+    def set_weights_from_model(self, model: "PBP3Model") -> None:
         self.l1.set_weights_from_layer(model.l1)
         self.l2.set_weights_from_layer(model.l2)
         self.l3.set_weights_from_layer(model.l3)

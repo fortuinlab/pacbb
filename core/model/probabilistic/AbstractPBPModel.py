@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from core.model import AbstractModel
 from core.utils import KLDivergenceInterface
 
+
 class AbstractPBPModel(AbstractModel, KLDivergenceInterface, ABC):
     def __init__(
         self,

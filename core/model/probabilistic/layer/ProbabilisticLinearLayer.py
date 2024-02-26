@@ -157,7 +157,7 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
         copy_.__deepcopy__ = deepcopy_method
         return copy_
 
-    def set_weights_from_layer(self, layer: 'ProbabilisticLinearLayer') -> None:
+    def set_weights_from_layer(self, layer: "ProbabilisticLinearLayer") -> None:
         distribution = layer._select_distribution()
 
         weight_mu = layer.weight.mu
@@ -165,7 +165,9 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
         bias_mu = layer.bias_prior.mu
         bias_rho = layer.bias_prior.rho
 
-        self.weight_prior = distribution(weight_mu, weight_rho, self._device, True, True)
+        self.weight_prior = distribution(
+            weight_mu, weight_rho, self._device, True, True
+        )
         self.bias_prior = distribution(bias_mu, bias_rho, self._device, True, True)
 
         self.weight = distribution(weight_mu, weight_rho, self._device, False, False)
