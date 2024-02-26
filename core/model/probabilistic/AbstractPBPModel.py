@@ -5,9 +5,9 @@ import torch
 import torch.nn.functional as F
 
 from core.model import AbstractModel
+from core.utils import KLDivergenceInterface
 
-
-class AbstractPBPModel(AbstractModel, ABC):
+class AbstractPBPModel(AbstractModel, KLDivergenceInterface, ABC):
     def __init__(
         self,
         model_weight_distribution: str,
@@ -34,3 +34,7 @@ class AbstractPBPModel(AbstractModel, ABC):
         if clamping:
             output = torch.clamp(output, np.log(p_min))
         return output
+
+    @abstractmethod
+    def compute_kl(self, recompute: bool = True) -> torch.Tensor:
+        pass

@@ -10,9 +10,10 @@ from core.model.probabilistic.distribution import (AbstractVariable,
                                                    GaussianVariable,
                                                    LaplaceVariable)
 from core.model.probabilistic.layer import LayerUtils
+from core.utils import KLDivergenceInterface
 
 
-class ProbabilisticLinearLayer(nn.Module):
+class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
     def __init__(
         self,
         input_dim: int,
