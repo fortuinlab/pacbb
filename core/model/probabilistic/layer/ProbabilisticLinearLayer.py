@@ -155,3 +155,17 @@ class ProbabilisticLinearLayer(nn.Module):
         self.__deepcopy__ = deepcopy_method
         copy_.__deepcopy__ = deepcopy_method
         return copy_
+
+    def set_weights_from_layer(self, layer: 'ProbabilisticLinearLayer') -> None:
+        distribution = layer._select_distribution()
+
+        weight_mu = layer.weight.mu
+        weight_rho = layer.weight.rho
+        bias_mu = layer.bias_prior.mu
+        bias_rho = layer.bias_prior.rho
+
+        self.weight_prior = distribution(weight_mu, weight_rho, self._device, True, True)
+        self.bias_prior = distribution(bias_mu, bias_rho, self._device, True, True)
+
+        self.weight = distribution(weight_mu, weight_rho, self._device, False, False)
+        self.bias = distribution(bias_mu, bias_rho, self._device, False, False)

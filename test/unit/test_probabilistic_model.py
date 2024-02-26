@@ -24,3 +24,10 @@ def test_probabilistic_pbp3_model():
     assert model.l3.kl_div is not None
 
     assert output.shape == torch.Size([1, 10])
+
+    model2 = PBP3Model(28 * 28, 100, 10, "gaussian", 0.01, "random", device)
+    model2.set_weights_from_model(model)
+
+    assert model.l1.weight.compute_kl(model2.l1.weight) <= 1e-6
+    assert model.l2.weight.compute_kl(model2.l2.weight) <= 1e-6
+    assert model.l3.weight.compute_kl(model2.l3.weight) <= 1e-6
