@@ -1,5 +1,6 @@
 training_pipeline:
   training_pipeline_name: pbp
+  disable_tqdm: True
   model:
     model_name: pbp3
     model_weight_distribution: 'gaussian'
@@ -10,8 +11,10 @@ training_pipeline:
     weight_initialization_method: 'random'
   prior:
     trainer_name: pbp  # marglik or None
+    epochs: 10
   posterior:
     trainer_name: pbp
+    epochs: 10
 evaluation_pipeline:
   evaluation_pipeline_name: pbp
 dataset:
