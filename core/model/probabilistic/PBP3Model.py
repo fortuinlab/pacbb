@@ -7,22 +7,31 @@ from core.model.probabilistic.layer import ProbabilisticLinearLayer
 
 class PBP3Model(AbstractPBPModel):
     def __init__(
-            self,
-            input_dim: int,
-            hidden_dim: int,
-            output_dim: int,
-            model_weight_distribution: str,
-            sigma: float,
-            weight_initialization_method: str,
-            device: torch.device):
-        super().__init__(model_weight_distribution, sigma, weight_initialization_method, input_dim, output_dim, hidden_dim, device)
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        model_weight_distribution: str,
+        sigma: float,
+        weight_initialization_method: str,
+        device: torch.device,
+    ):
+        super().__init__(
+            model_weight_distribution,
+            sigma,
+            weight_initialization_method,
+            input_dim,
+            output_dim,
+            hidden_dim,
+            device,
+        )
         self.l1 = ProbabilisticLinearLayer(
             self._input_dim,
             self._hidden_dim,
             self._model_weight_distribution,
             self._sigma,
             self._weight_initialization_method,
-            self._device
+            self._device,
         )
         self.l2 = ProbabilisticLinearLayer(
             self._hidden_dim,
@@ -30,7 +39,7 @@ class PBP3Model(AbstractPBPModel):
             self._model_weight_distribution,
             self._sigma,
             self._weight_initialization_method,
-            self._device
+            self._device,
         )
         self.l3 = ProbabilisticLinearLayer(
             self._hidden_dim,
@@ -38,7 +47,7 @@ class PBP3Model(AbstractPBPModel):
             self._model_weight_distribution,
             self._sigma,
             self._weight_initialization_method,
-            self._device
+            self._device,
         )
 
     def forward(self, x, sample=False, clamping=True, pmin=1e-4):

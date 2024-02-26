@@ -8,7 +8,10 @@ class GaussianVariable(AbstractVariable):
     """
     Represents a Gaussian random variable with mean mu and TODO rho.
     """
-    def __init__(self, mu: Tensor, rho: Tensor, device: torch.device, fix_mu: bool, fix_rho: bool):
+
+    def __init__(
+        self, mu: Tensor, rho: Tensor, device: torch.device, fix_mu: bool, fix_rho: bool
+    ):
         """
         Initialize the GaussianVariable.
 
@@ -31,7 +34,7 @@ class GaussianVariable(AbstractVariable):
         epsilon = torch.randn_like(self.sigma, device=self._device)
         return self.mu + self.sigma * epsilon
 
-    def compute_kl(self, other: 'GaussianVariable') -> Tensor:
+    def compute_kl(self, other: "GaussianVariable") -> Tensor:
         """
         Compute the KL divergence between two Gaussian distributions.
 

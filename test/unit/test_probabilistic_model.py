@@ -5,8 +5,8 @@ from core.model.probabilistic import PBP3Model
 
 def test_probabilistic_pbp3_model():
     input_ = torch.ones((28, 28))
-    device = torch.device('cpu')
-    model = PBP3Model(28*28, 100, 10, 'gaussian', 0.01, 'zeros', device)
+    device = torch.device("cpu")
+    model = PBP3Model(28 * 28, 100, 10, "gaussian", 0.01, "zeros", device)
 
     assert model.kl_div is None
     assert model.compute_kl() >= 1e-6

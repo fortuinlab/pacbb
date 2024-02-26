@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Dict
+
 import torch
 
-from core.pipeline import AbstractPipeline
-from core.model import AbstractModel
 from core.dataset import DatasetHandler
+from core.model import AbstractModel
+from core.pipeline import AbstractPipeline
 
 
 class AbstractTrainingPipeline(AbstractPipeline, ABC):
@@ -27,6 +28,10 @@ class AbstractTrainingPipeline(AbstractPipeline, ABC):
 
     @abstractmethod
     def train(
-        self, model_config: Dict, dataset_config: Dict, split_strategy_config: Dict, device: torch.device
+        self,
+        model_config: Dict,
+        dataset_config: Dict,
+        split_strategy_config: Dict,
+        device: torch.device,
     ) -> None:
         pass

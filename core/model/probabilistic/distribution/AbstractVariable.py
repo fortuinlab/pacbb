@@ -6,7 +6,14 @@ import torch.nn as nn
 
 
 class AbstractVariable(nn.Module, ABC):
-    def __init__(self, mu: torch.Tensor, rho: torch.Tensor, device: torch.device, fix_mu: bool, fix_rho: bool):
+    def __init__(
+        self,
+        mu: torch.Tensor,
+        rho: torch.Tensor,
+        device: torch.device,
+        fix_mu: bool,
+        fix_rho: bool,
+    ):
         super().__init__()
         self.mu = nn.Parameter(mu, requires_grad=not fix_mu)
         self.rho = nn.Parameter(rho, requires_grad=not fix_rho)

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-import torch
+
 import numpy as np
+import torch
 import torch.nn.functional as F
 
 from core.model import AbstractModel

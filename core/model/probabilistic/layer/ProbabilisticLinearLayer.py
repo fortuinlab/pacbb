@@ -1,12 +1,16 @@
+import copy
+from typing import Type
+
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import Type
-import copy
 import torch.nn.functional as F
 
-from core.model.probabilistic.distribution import LaplaceVariable, GaussianVariable, AbstractVariable
+from core.model.probabilistic.distribution import (AbstractVariable,
+                                                   GaussianVariable,
+                                                   LaplaceVariable)
 from core.model.probabilistic.layer import LayerUtils
+
 
 class ProbabilisticLinearLayer(nn.Module):
     def __init__(
@@ -33,7 +37,6 @@ class ProbabilisticLinearLayer(nn.Module):
         self._initialize_prior(distribution)
         self._initialize_posterior(distribution)
 
-
     def _initialize_posterior(self, distribution: Type[AbstractVariable]) -> None:
         # TODO: move initialization to separate functions
         w = 1 / np.sqrt(self._input_dim)
@@ -41,10 +44,16 @@ class ProbabilisticLinearLayer(nn.Module):
             bias_mu_posterior = torch.zeros(self._output_dim)
             bias_rho_posterior = torch.ones(self._output_dim) * self._rho
             t = torch.Tensor(self._output_dim, self._input_dim)
-            weights_mu_posterior = LayerUtils.truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w)
-            weights_rho_posterior = torch.ones(self._output_dim, self._input_dim) * self._rho
+            weights_mu_posterior = LayerUtils.truncated_normal_fill_tensor(
+                t, 0, w, -2 * w, 2 * w
+            )
+            weights_rho_posterior = (
+                torch.ones(self._output_dim, self._input_dim) * self._rho
+            )
         else:
-            raise RuntimeError(f"Invalid value of weight_initialization_method: {self._weight_initialization_method}")
+            raise RuntimeError(
+                f"Invalid value of weight_initialization_method: {self._weight_initialization_method}"
+            )
 
         self.bias = distribution(
             bias_mu_posterior.clone(),
@@ -68,15 +77,23 @@ class ProbabilisticLinearLayer(nn.Module):
             bias_mu_prior = torch.zeros(self._output_dim)
             bias_rho_prior = torch.ones(self._output_dim) * self._rho
             weights_mu_prior = torch.zeros(self._output_dim, self._input_dim)
-            weights_rho_prior = torch.ones(self._output_dim, self._input_dim) * self._rho
+            weights_rho_prior = (
+                torch.ones(self._output_dim, self._input_dim) * self._rho
+            )
         elif self._weight_initialization_method == "random":
             bias_mu_prior = torch.zeros(self._output_dim)
             bias_rho_prior = torch.ones(self._output_dim) * self._rho
             t = torch.Tensor(self._output_dim, self._input_dim)
-            weights_mu_prior = LayerUtils.truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w)
-            weights_rho_prior = torch.ones(self._output_dim, self._input_dim) * self._rho
+            weights_mu_prior = LayerUtils.truncated_normal_fill_tensor(
+                t, 0, w, -2 * w, 2 * w
+            )
+            weights_rho_prior = (
+                torch.ones(self._output_dim, self._input_dim) * self._rho
+            )
         else:
-            raise RuntimeError(f"Invalid value of weight_initialization_method: {self._weight_initialization_method}")
+            raise RuntimeError(
+                f"Invalid value of weight_initialization_method: {self._weight_initialization_method}"
+            )
 
         self.weight_prior = distribution(
             weights_mu_prior.clone(),
@@ -100,7 +117,9 @@ class ProbabilisticLinearLayer(nn.Module):
         elif self._model_weight_distribution == "laplace":
             distribution = LaplaceVariable
         else:
-            raise RuntimeError(f"Invalid value of model_weight_distribution: {self._model_weight_distribution}")
+            raise RuntimeError(
+                f"Invalid value of model_weight_distribution: {self._model_weight_distribution}"
+            )
         return distribution
 
     def forward(self, input, force_sampling: bool = False):
@@ -120,7 +139,9 @@ class ProbabilisticLinearLayer(nn.Module):
 
     def compute_kl(self, recompute: bool = True) -> torch.Tensor:
         if recompute:
-            return self.weight.compute_kl(self.weight_prior) + self.bias.compute_kl(self.bias_prior)
+            return self.weight.compute_kl(self.weight_prior) + self.bias.compute_kl(
+                self.bias_prior
+            )
         else:
             return self.weight.kl_div + self.bias.kl_div
 
