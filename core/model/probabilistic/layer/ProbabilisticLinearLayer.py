@@ -1,186 +1,136 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from typing import Type
+import copy
+import torch.nn.functional as F
 
+from core.model.probabilistic.distribution import LaplaceVariable, GaussianVariable, AbstractVariable
+from core.model.probabilistic.layer import LayerUtils
 
 class ProbabilisticLinearLayer(nn.Module):
-    """Implementation of a Probabilistic Linear layer.
-
-    Parameters
-    ----------
-    in_features : int
-        Number of input features for the layer
-
-    out_features : int
-        Number of output features for the layer
-
-    rho_prior : float
-        prior scale hyperparmeter (to initialise the scale of
-        the posterior)
-
-    prior_dist : string
-        string that indicates the type of distribution for the
-        prior and posterior
-
-    device : string
-        Device the code will run in (e.g. 'cuda')
-
-    init_layer : Linear object
-        Linear layer object used to initialise the prior
-
-    init_prior : string
-        string that indicates the way to initialise the prior:
-        *"weights" = initialise with init_layer
-        *"zeros" = initialise with zeros and rho prior
-        *"random" = initialise with random weights and rho prior
-        *""
-
-    """
-
     def __init__(
         self,
-        in_features,
-        out_features,
-        rho_prior,
-        prior_dist="gaussian",
-        device="cuda",
-        init_prior="random",
-        init_layer=None,
-        fix_mu=False,
-        fix_rho=False,
+        input_dim: int,
+        output_dim: int,
+        model_weight_distribution: str,
+        sigma: float,
+        weight_initialization_method: str,
+        device: torch.device,
     ):
         super().__init__()
-        self.in_features = in_features
-        self.out_features = out_features
+        self._model_weight_distribution = model_weight_distribution
+        self._sigma = sigma
+        self._weight_initialization_method = weight_initialization_method
+        self._input_dim = input_dim
+        self._output_dim = output_dim
+        self._device = device
+        self._rho = np.log(np.exp(sigma) - 1.0)
+        # TODO: set as tensor of -1?
+        self.kl_div = None
 
-        # Set sigma for the truncated gaussian of weights
-        sigma_weights = 1 / np.sqrt(in_features)
+        distribution = self._select_distribution()
+        self._initialize_prior(distribution)
+        self._initialize_posterior(distribution)
 
-        # INITIALISE PRIOR
-        # this means prior is uninformed
-        if not init_layer:
-            # initalise prior to zeros and rho_prior
-            if init_prior == "zeros":
-                bias_mu_prior = torch.zeros(out_features)
-                weights_mu_prior = torch.zeros(out_features, in_features)
-                weights_rho_prior = torch.ones(out_features, in_features) * rho_prior
-                bias_rho_prior = torch.ones(out_features) * rho_prior
-            # initialise prior to random weights and rho_prior
-            elif init_prior == "random":
-                weights_mu_prior = trunc_normal_(
-                    torch.Tensor(out_features, in_features),
-                    0,
-                    sigma_weights,
-                    -2 * sigma_weights,
-                    2 * sigma_weights,
-                )
-                bias_mu_prior = torch.zeros(out_features)
-                weights_rho_prior = torch.ones(out_features, in_features) * rho_prior
-                bias_rho_prior = torch.ones(out_features) * rho_prior
-            else:
-                raise RuntimeError(f"Wrong type of prior initialisation!")
-        # informed prior
+
+    def _initialize_posterior(self, distribution: Type[AbstractVariable]) -> None:
+        # TODO: move initialization to separate functions
+        w = 1 / np.sqrt(self._input_dim)
+        if self._weight_initialization_method in ["zeros", "random"]:
+            bias_mu_posterior = torch.zeros(self._output_dim)
+            bias_rho_posterior = torch.ones(self._output_dim) * self._rho
+            t = torch.Tensor(self._output_dim, self._input_dim)
+            weights_mu_posterior = LayerUtils.truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w)
+            weights_rho_posterior = torch.ones(self._output_dim, self._input_dim) * self._rho
         else:
-            # if init layer is probabilistic
-            if hasattr(init_layer.weight, "rho"):
-                weights_mu_prior = init_layer.weight.mu
-                bias_mu_prior = init_layer.bias.mu
-                weights_rho_prior = init_layer.weight.rho
-                bias_rho_prior = init_layer.bias.rho
-            # if init layer for prior is not probabilistic
-            else:
-                weights_mu_prior = init_layer.weight
-                bias_mu_prior = init_layer.bias
-                weights_rho_prior = torch.ones(out_features, in_features) * rho_prior
-                bias_rho_prior = torch.ones(out_features) * rho_prior
+            raise RuntimeError(f"Invalid value of weight_initialization_method: {self._weight_initialization_method}")
 
-        # INITIALISE POSTERIOR
-        # WE ASSUME THAT ALWAYS POSTERIOR WILL BE INITIALISED TO PRIOR (UNLESS PRIOR IS INITIALISED TO ALL ZEROS)
-        if init_prior == "zeros":
-            weights_mu_init = trunc_normal_(
-                torch.Tensor(out_features, in_features),
-                0,
-                sigma_weights,
-                -2 * sigma_weights,
-                2 * sigma_weights,
-            )
-            bias_mu_init = torch.zeros(out_features)
-            weights_rho_init = torch.ones(out_features, in_features) * rho_prior
-            bias_rho_init = torch.ones(out_features) * rho_prior
-        # initialise to prior
-        else:
-            weights_mu_init = weights_mu_prior
-            bias_mu_init = bias_mu_prior
-            weights_rho_init = weights_rho_prior
-            bias_rho_init = bias_rho_prior
-
-        if prior_dist == "gaussian":
-            dist = Gaussian
-        elif prior_dist == "laplace":
-            dist = Laplace
-        else:
-            raise RuntimeError(f"Wrong prior_dist {prior_dist}")
-
-        self.bias = dist(
-            bias_mu_init.clone(),
-            bias_rho_init.clone(),
-            device=device,
-            fix_mu=fix_mu,
-            fix_rho=fix_rho,
+        self.bias = distribution(
+            bias_mu_posterior.clone(),
+            bias_rho_posterior.clone(),
+            device=self._device,
+            fix_mu=False,
+            fix_rho=False,
         )
-        self.weight = dist(
-            weights_mu_init.clone(),
-            weights_rho_init.clone(),
-            device=device,
-            fix_mu=fix_mu,
-            fix_rho=fix_rho,
+        self.weight = distribution(
+            weights_mu_posterior.clone(),
+            weights_rho_posterior.clone(),
+            device=self._device,
+            fix_mu=False,
+            fix_rho=False,
         )
-        self.weight_prior = dist(
+
+    def _initialize_prior(self, distribution: Type[AbstractVariable]) -> None:
+        # TODO: move initialization to separate functions
+        w = 1 / np.sqrt(self._input_dim)
+        if self._weight_initialization_method == "zeros":
+            bias_mu_prior = torch.zeros(self._output_dim)
+            bias_rho_prior = torch.ones(self._output_dim) * self._rho
+            weights_mu_prior = torch.zeros(self._output_dim, self._input_dim)
+            weights_rho_prior = torch.ones(self._output_dim, self._input_dim) * self._rho
+        elif self._weight_initialization_method == "random":
+            bias_mu_prior = torch.zeros(self._output_dim)
+            bias_rho_prior = torch.ones(self._output_dim) * self._rho
+            t = torch.Tensor(self._output_dim, self._input_dim)
+            weights_mu_prior = LayerUtils.truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w)
+            weights_rho_prior = torch.ones(self._output_dim, self._input_dim) * self._rho
+        else:
+            raise RuntimeError(f"Invalid value of weight_initialization_method: {self._weight_initialization_method}")
+
+        self.weight_prior = distribution(
             weights_mu_prior.clone(),
             weights_rho_prior.clone(),
-            device=device,
+            device=self._device,
             fix_mu=True,
             fix_rho=True,
         )
-        self.bias_prior = dist(
+        self.bias_prior = distribution(
             bias_mu_prior.clone(),
             bias_rho_prior.clone(),
-            device=device,
+            device=self._device,
             fix_mu=True,
             fix_rho=True,
         )
 
-        self.kl_div = 0
+    def _select_distribution(self) -> Type[AbstractVariable]:
+        # TODO: move to factory?
+        if self._model_weight_distribution == "gaussian":
+            distribution = GaussianVariable
+        elif self._model_weight_distribution == "laplace":
+            distribution = LaplaceVariable
+        else:
+            raise RuntimeError(f"Invalid value of model_weight_distribution: {self._model_weight_distribution}")
+        return distribution
 
-    def forward(self, input, sample=False):
-        if self.training or sample:
+    def forward(self, input, force_sampling: bool = False):
+        if self.training or force_sampling:
             # during training we sample from the model distribution
             # sample = True can also be set during testing if we
             # want to use the stochastic/ensemble predictors
             weight = self.weight.sample()
             bias = self.bias.sample()
         else:
-            # otherwise we use the posterior mean
+            # otherwise we use the mean
             weight = self.weight.mu
             bias = self.bias.mu
         if self.training:
-            # sum of the KL computed for weights and biases
-            self.kl_div = self.weight.compute_kl(
-                self.weight_prior
-            ) + self.bias.compute_kl(self.bias_prior)
-
+            self.kl_div = self.compute_kl()
         return F.linear(input, weight, bias)
 
-    def compute_kl_force(self):
-        self.kl_div = self.weight.compute_kl(self.weight_prior) + self.bias.compute_kl(
-            self.bias_prior
-        )
+    def compute_kl(self, recompute: bool = True) -> torch.Tensor:
+        if recompute:
+            return self.weight.compute_kl(self.weight_prior) + self.bias.compute_kl(self.bias_prior)
+        else:
+            return self.weight.kl_div + self.bias.kl_div
 
     def __deepcopy__(self, memo):
+        # TODO: refactor
         deepcopy_method = self.__deepcopy__
         self.__deepcopy__ = None
+        # TODO: does it forget device?
         self.kl_div = self.kl_div.detach().clone()
-        cp = copy.deepcopy(self, memo)
+        copy_ = copy.deepcopy(self, memo)
         self.__deepcopy__ = deepcopy_method
-        cp.__deepcopy__ = deepcopy_method
-        return cp
+        copy_.__deepcopy__ = deepcopy_method
+        return copy_

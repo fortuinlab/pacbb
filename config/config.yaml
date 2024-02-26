@@ -1,6 +1,17 @@
 training_pipeline:
   training_pipeline_name: pbp
-  model: abc
+  model:
+    model_name: pbp3
+    model_weight_distribution: 'gaussian'
+    input_dim: 784  # TODO: can be removed in future
+    output_dim: 10
+    hidden_dim: 100
+    sigma: 0.01
+    weight_initialization_method: 'random'
+  prior:
+    trainer_name: pbp  # marglik or None
+  posterior:
+    trainer_name: pbp
 evaluation_pipeline:
   evaluation_pipeline_name: pbp
 dataset:
@@ -12,7 +23,7 @@ split_strategy:
   training_percent: 1.0
   val_percent: 0.05
   prior_percent: 0.5
-  prior_type: learnt   # learnt, not_learnt
+  prior_type: learnt   # learnt, not_learnt TODO: leave one parameter, take it from model
   self_certified: True  # True, False, None
   seed: 7
   dataset_loader_seed: 10
