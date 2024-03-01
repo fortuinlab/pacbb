@@ -32,6 +32,11 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
 
         prior_loader = self._dataset_handler.split_strategy.prior_loader
         val_loader = self._dataset_handler.split_strategy.val_loader
+        posterior_loader = self._dataset_handler.split_strategy.posterior_loader
+        bound_loader_1batch = self._dataset_handler.split_strategy.bound_loader_1batch
+
+        # Prior training
+        logger.info("Train prior")
 
         # Select model
         logger.info("Select model")
@@ -45,9 +50,6 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             hidden_dim=model_config["hidden_dim"],
             device=device,
         )
-
-        # Prior training
-        logger.info("Train prior")
 
         # Select optimizer
         optimizer_config = prior_config["optimizer"].copy()
@@ -84,14 +86,11 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             training_config=training_config,
         )
 
-        return
-
         # Posterior training
         logger.info("Train posterior")
 
-        posterior_trainer = TrainerFactory().create(
-            training_pipeline_config["posterior"]["trainer_name"]
-        )
+        # Select model
+        logger.info("Select model")
         posterior_model = PBP3Model(
             model_weight_distribution=model_config["model_weight_distribution"],
             sigma=model_config["sigma"],
@@ -102,9 +101,42 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             device=device,
         )
         posterior_model.set_weights_from_model(prior_model)
-        posterior_trainer.train(
-            model=posterior_model, training_config=training_pipeline_config["posterior"]
+
+        # Select optimizer
+        optimizer_config = posterior_config["optimizer"].copy()
+        optimizer_config.pop("optimizer_name", None)
+        optimizer_config["params"] = posterior_model.parameters()
+        posterior_optimizer = TorchOptimizerFactory().create(
+            posterior_config["optimizer"]["optimizer_name"], **optimizer_config
         )
 
+        # Select objective
+        objective_config = posterior_config["objective"].copy()
+        objective_config.pop("objective_name", None)
+        objective_config["num_classes"] = model_config["output_dim"]
+        objective_config["device"] = device
+        posterior_objective = ObjectiveFactory().create(
+            posterior_config["objective"]["objective_name"], **objective_config
+        )
+
+        # Select trainer
+        posterior_trainer = TrainerFactory().create(posterior_config["trainer_name"], device)
+
+        # Train model
+        training_config = {
+            "epochs": posterior_config["epochs"],
+            "disable_tqdm": training_pipeline_config["disable_tqdm"],
+            "train_loader": posterior_loader,
+            "val_loader": bound_loader_1batch,
+            "num_samples": len(posterior_loader) * posterior_loader.batch_size,
+        }
+        posterior_model = posterior_trainer.train(
+            model=posterior_model,
+            optimizer=posterior_optimizer,
+            objective=posterior_objective,
+            training_config=training_config,
+        )
+        
+        # Save models
         self._prior_model = prior_model
         self._posterior_model = posterior_model

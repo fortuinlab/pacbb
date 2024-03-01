@@ -22,9 +22,15 @@ training_pipeline:
       pmin: 1e-5
   posterior:
     trainer_name: pbp
-    epochs: 10
-    optimizer: sgd
-    objective: bbb
+    epochs: 5
+    optimizer:
+      optimizer_name: sgd
+      lr: 0.001
+      momentum: 0.90
+    objective:
+      objective_name: bbb
+      kl_penalty: 1.
+      pmin: 1e-5
 evaluation_pipeline:
   evaluation_pipeline_name: pbp
 dataset:

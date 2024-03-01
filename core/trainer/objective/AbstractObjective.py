@@ -43,8 +43,6 @@ class AbstractObjective(ABC):
         self, model: AbstractPBPModel, data: Tensor, targets: Tensor
     ) -> Tuple[Tensor, Tensor, Tensor]:
         outputs = model(data, sample=True, clamping=self._clamping, pmin=self._pmin)
-        loss_ce = RiskEvaluator.compute_empirical_risk(
-            outputs, targets, bounded=self._clamping, pmin=self._pmin
-        )
+        loss_ce = RiskEvaluator.compute_empirical_risk(outputs, targets, self._clamping, self._pmin)
         loss_01 = RiskEvaluator.compute_01_empirical_risk(outputs, targets)
         return loss_ce, loss_01, outputs

@@ -6,10 +6,10 @@ from torch import Tensor
 class RiskEvaluator:
     @staticmethod
     def compute_empirical_risk(
-        outputs: Tensor, targets: Tensor, pmin: float, bounded=True
+        outputs: Tensor, targets: Tensor, clamping: bool, pmin: float
     ) -> Tensor:
         empirical_risk = F.nll_loss(outputs, targets)
-        if bounded:
+        if clamping:
             empirical_risk = empirical_risk / (np.log(1.0 / pmin))
         return empirical_risk
 

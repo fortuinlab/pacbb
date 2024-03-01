@@ -32,8 +32,7 @@ class ModelEvaluator:
                         data, sample=True, clamping=True, pmin=objective._pmin
                     )
                     cross_entropy += RiskEvaluator.compute_empirical_risk(
-                        outputs, target.long(), bounded=True, pmin=objective._pmin
-                    ).item()
+                        outputs, target.long(), True, objective._pmin).item()
                     pred = outputs.max(1, keepdim=True)[1]
                     correct += pred.eq(target.view_as(pred)).sum().item()
                     total += target.size(0)

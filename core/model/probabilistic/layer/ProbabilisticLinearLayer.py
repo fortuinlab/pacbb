@@ -172,9 +172,13 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
         bias_rho = layer.bias_prior.rho
 
         self.weight_prior = distribution(
-            weight_mu, weight_rho, self._device, True, True
+            weight_mu.clone(),
+            weight_rho.clone(), self._device, True, True
         )
-        self.bias_prior = distribution(bias_mu, bias_rho, self._device, True, True)
+        self.bias_prior = distribution(bias_mu.clone(),
+                                       bias_rho.clone(), self._device, True, True)
 
-        self.weight = distribution(weight_mu, weight_rho, self._device, False, False)
-        self.bias = distribution(bias_mu, bias_rho, self._device, False, False)
+        self.weight = distribution(weight_mu.clone(),
+                                   weight_rho.clone(), self._device, False, False)
+        self.bias = distribution(bias_mu.clone(),
+                                 bias_rho.clone(), self._device, False, False)
