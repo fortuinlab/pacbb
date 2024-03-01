@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 from core.model.probabilistic.distribution import (AbstractVariable,
                                                    GaussianVariable,
@@ -32,7 +33,7 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
         self._device = device
         self._rho = np.log(np.exp(sigma) - 1.0)
         # TODO: set as tensor of -1?
-        self.kl_div = None
+        self.kl_div = Tensor([0])
 
         distribution = self._select_distribution()
         self._initialize_prior(distribution)
@@ -140,7 +141,7 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
             weight = self.weight.mu
             bias = self.bias.mu
         if self.training:
-            self.kl_div = self.compute_kl()
+            self.kl_div = self.compute_kl(recompute=True)
         return F.linear(input, weight, bias)
 
     def compute_kl(self, recompute: bool = True) -> torch.Tensor:

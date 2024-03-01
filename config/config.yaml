@@ -11,15 +11,15 @@ training_pipeline:
     weight_initialization_method: 'random'
   prior:
     trainer_name: pbp  # marglik or None
-    epochs: 10
+    epochs: 100
     optimizer:
       optimizer_name: sgd
       lr: 0.001
-      momentum: 0.90
+      momentum: 0.95
     objective:
       objective_name: bbb
       kl_penalty: 0.001
-      pmin: 1e-4
+      pmin: 1e-5
   posterior:
     trainer_name: pbp
     epochs: 10

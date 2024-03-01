@@ -23,7 +23,7 @@ class AbstractObjective(ABC):
 
     def train_objective(self, model: AbstractPBPModel, data, target, num_samples: int) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
         # compute train objective and return all metrics
-        kl = model.compute_kl()
+        kl = model.compute_kl(recompute=False)  # No need to recompute. KL was updated during the last training pass
         loss_ce, loss_01, outputs = self.compute_losses(model, data, target.long())
 
         train_obj = self.bound(loss_ce, kl, num_samples)
@@ -32,7 +32,7 @@ class AbstractObjective(ABC):
     def compute_losses(self, model: AbstractPBPModel, data: Tensor, targets: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         outputs = model(data, sample=True, clamping=self._clamping, pmin=self._pmin)
         loss_ce = self.compute_empirical_risk(outputs, targets, bounded=self._clamping)
-        loss_01 = self.compute_empirical_risk(outputs, targets)
+        loss_01 = self.compute_01_empirical_risk(outputs, targets)
         return loss_ce, loss_01, outputs
 
     def compute_empirical_risk(self, outputs: Tensor, targets: Tensor, bounded=True) -> Tensor:
@@ -46,4 +46,4 @@ class AbstractObjective(ABC):
         correct = predictions.eq(targets.view_as(predictions)).sum().item()
         total = targets.size(0)
         loss_01 = 1 - (correct / total)
-        return loss_01
+        return Tensor([loss_01])
