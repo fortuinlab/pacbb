@@ -1,4 +1,5 @@
+from core.trainer.TorchOptimizerFactory import TorchOptimizerFactory
 from core.trainer.AbstractTrainer import AbstractTrainer
-from core.trainer.PBPTrainer import PBPTrainer
+from core.trainer.PBPProbabilisticTrainer import PBPProbabilisticTrainer
 from core.trainer.MarglikTrainer import MarglikTrainer
 from core.trainer.TrainerFactory import TrainerFactory

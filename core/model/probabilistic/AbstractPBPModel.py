@@ -37,5 +37,9 @@ class AbstractPBPModel(AbstractModel, KLDivergenceInterface, ABC):
         return output
 
     @abstractmethod
+    def forward(self, x, sample: bool, clamping: bool, pmin: float):
+        pass
+
+    @abstractmethod
     def compute_kl(self, recompute: bool = True) -> torch.Tensor:
         pass

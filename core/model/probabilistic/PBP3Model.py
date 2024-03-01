@@ -50,7 +50,8 @@ class PBP3Model(AbstractPBPModel):
             self._device,
         )
 
-    def forward(self, x, sample=False, clamping=True, pmin=1e-4):
+    def forward(self, x, sample: bool = False, clamping: bool = True, pmin: float = 1e-4):
+        # TODO: move default values to settings
         x = x.view(-1, self._input_dim)
         x = F.relu(self.l1(x, sample))
         x = F.relu(self.l2(x, sample))
