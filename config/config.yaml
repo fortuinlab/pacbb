@@ -1,0 +1,48 @@
+training_pipeline:
+  training_pipeline_name: pbp
+  disable_tqdm: True
+  model:
+    model_name: pbp3
+    model_weight_distribution: 'gaussian'
+    input_dim: 784  # TODO: can be removed in future
+    output_dim: 10
+    hidden_dim: 100
+    sigma: 0.01
+    weight_initialization_method: 'random'
+  prior:
+    trainer_name: pbp  # marglik or None
+    epochs: 5
+    optimizer:
+      optimizer_name: sgd
+      lr: 0.001
+      momentum: 0.95
+    objective:
+      objective_name: bbb
+      kl_penalty: 0.001
+      pmin: 1e-5
+  posterior:
+    trainer_name: pbp
+    epochs: 5
+    optimizer:
+      optimizer_name: sgd
+      lr: 0.001
+      momentum: 0.90
+    objective:
+      objective_name: bbb
+      kl_penalty: 1.
+      pmin: 1e-5
+evaluation_pipeline:
+  evaluation_pipeline_name: pbp
+dataset:
+  dataset_name: mnist
+  dataset_path: ./data/mnist/
+split_strategy:
+  split_strategy_name: pbp
+  batch_size: 250
+  training_percent: 1.0
+  val_percent: 0.05
+  prior_percent: 0.5
+  prior_type: learnt   # learnt, not_learnt TODO: leave one parameter, take it from model
+  self_certified: True  # True, False, None
+  seed: 7
+  dataset_loader_seed: 10

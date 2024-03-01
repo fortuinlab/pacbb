@@ -1,0 +1,8 @@
+# env
+conda_env
+# cache
+.idea
+__pycache__/
+# data
+data/
+outputs/
