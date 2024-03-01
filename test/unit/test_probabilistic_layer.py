@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 
 from core.model.probabilistic.layer import ProbabilisticLinearLayer
 
@@ -8,7 +9,7 @@ def test_probabilistic_linear_layer():
     device = torch.device("cpu")
     layer1 = ProbabilisticLinearLayer(28 * 28, 10, "gaussian", 0.01, "zeros", device)
 
-    assert layer1.kl_div is None
+    assert layer1.kl_div.eq(Tensor([0]))
     assert layer1.compute_kl() >= 1e-6
     assert torch.allclose(
         layer1.weight_prior.mu, torch.zeros_like(layer1.weight_prior.mu)
@@ -27,7 +28,7 @@ def test_probabilistic_linear_layer():
 
     layer1.train(mode=False)
     output = layer1.forward(input_)
-    assert layer1.kl_div is None
+    assert layer1.kl_div.eq(Tensor([0]))
 
     layer1.train()
     output = layer1.forward(input_)

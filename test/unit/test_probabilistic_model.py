@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 
 from core.model.probabilistic import PBP3Model
 
@@ -13,9 +14,9 @@ def test_probabilistic_pbp3_model():
 
     model.train(mode=False)
     output = model.forward(input_)
-    assert model.l1.kl_div is None
-    assert model.l2.kl_div is None
-    assert model.l3.kl_div is None
+    assert model.l1.kl_div.eq(Tensor([0]))
+    assert model.l2.kl_div.eq(Tensor([0]))
+    assert model.l3.kl_div.eq(Tensor([0]))
 
     model.train()
     output = model.forward(input_)

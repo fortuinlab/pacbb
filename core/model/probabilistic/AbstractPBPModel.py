@@ -31,7 +31,7 @@ class AbstractPBPModel(AbstractModel, KLDivergenceInterface, ABC):
         self.kl_div = None
 
     @staticmethod
-    def output_transform(x: Tensor, clamping: bool, p_min: float = 1e-4) -> Tensor:
+    def output_transform(x: Tensor, clamping: bool, p_min: float) -> Tensor:
         output = F.log_softmax(x, dim=1)
         if clamping:
             output = torch.clamp(output, np.log(p_min))
