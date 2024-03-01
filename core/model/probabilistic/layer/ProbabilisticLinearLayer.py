@@ -41,7 +41,7 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
     def _initialize_posterior(self, distribution: Type[AbstractVariable]) -> None:
         # TODO: move initialization to separate functions
         w = 1 / np.sqrt(self._input_dim)
-        if self._weight_initialization_method in ["zeros", "random"]:
+        if self._weight_initialization_method == "zeros":
             bias_mu_posterior = torch.zeros(self._output_dim)
             bias_rho_posterior = torch.ones(self._output_dim) * self._rho
             t = torch.Tensor(self._output_dim, self._input_dim)
@@ -51,6 +51,11 @@ class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):
             weights_rho_posterior = (
                 torch.ones(self._output_dim, self._input_dim) * self._rho
             )
+        elif self._weight_initialization_method == "random":
+            bias_mu_posterior = self.bias_prior.mu
+            bias_rho_posterior = self.bias_prior.rho
+            weights_mu_posterior = self.weight_prior.mu
+            weights_rho_posterior = self.weight_prior.rho
         else:
             raise RuntimeError(
                 f"Invalid value of weight_initialization_method: {self._weight_initialization_method}"

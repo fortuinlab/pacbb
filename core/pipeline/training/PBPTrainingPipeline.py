@@ -45,6 +45,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             hidden_dim=model_config["hidden_dim"],
             device=device,
         )
+        prior_model.compute_kl()
 
         # Prior training
         logger.info('Train prior')

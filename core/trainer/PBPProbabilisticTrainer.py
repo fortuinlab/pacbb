@@ -64,13 +64,13 @@ class PBPProbabilisticTrainer(AbstractTrainer):
                         cum_bound: float, cum_kl: float, cum_loss_ce: float, cum_loss_01: float, round_: int) -> str:
         message = {
             'epoch': round(epoch, round_),
-            'bound': round(bound, round_),
-            'kl': round(kl, round_),
-            'loss_ce': round(loss_ce, round_),
-            'loss_01': round(loss_01, round_),
             'avg_bound': round(cum_bound / batch, round_),
             'avg_kl': round(cum_kl / batch, round_),
             'avg_loss_ce': round(cum_loss_ce / batch, round_),
             'avg_loss_01': round(cum_loss_01 / batch, round_),
+            'bound': round(bound, round_),
+            'kl': round(kl, round_),
+            'loss_ce': round(loss_ce, round_),
+            'loss_01': round(loss_01, round_),
         }
         return json.dumps(message)
