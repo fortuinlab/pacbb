@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 import torch
 
 from core.model import AbstractModel

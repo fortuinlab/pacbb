@@ -5,8 +5,7 @@ import torch
 from core.dataset import DatasetHandler
 from core.model.probabilistic import PBP3Model
 from core.pipeline.training import AbstractTrainingPipeline
-from core.trainer import TrainerFactory
-from core.trainer import TorchOptimizerFactory
+from core.trainer import TorchOptimizerFactory, TrainerFactory
 from core.trainer.objective import ObjectiveFactory
 from core.utils import logger
 
@@ -27,7 +26,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         posterior_config = training_pipeline_config["posterior"]
 
         # Prepare data
-        logger.info('Prepare data')
+        logger.info("Prepare data")
         self._dataset_handler = DatasetHandler(dataset_config, split_strategy_config)
         self._dataset_handler.load_and_split_dataset()
 
@@ -35,7 +34,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         val_loader = self._dataset_handler.split_strategy.val_loader
 
         # Select model
-        logger.info('Select model')
+        logger.info("Select model")
         # TODO: implement model factory
         prior_model = PBP3Model(
             model_weight_distribution=model_config["model_weight_distribution"],
@@ -48,45 +47,47 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         )
 
         # Prior training
-        logger.info('Train prior')
+        logger.info("Train prior")
 
         # Select optimizer
-        optimizer_config = prior_config['optimizer'].copy()
-        optimizer_config.pop('optimizer_name', None)
-        optimizer_config['params'] = prior_model.parameters()
-        prior_optimizer = TorchOptimizerFactory().create(prior_config['optimizer']['optimizer_name'],
-                                                         **optimizer_config)
+        optimizer_config = prior_config["optimizer"].copy()
+        optimizer_config.pop("optimizer_name", None)
+        optimizer_config["params"] = prior_model.parameters()
+        prior_optimizer = TorchOptimizerFactory().create(
+            prior_config["optimizer"]["optimizer_name"], **optimizer_config
+        )
 
         # Select objective
-        objective_config = prior_config['objective'].copy()
-        objective_config.pop('objective_name', None)
-        objective_config['num_classes'] = model_config['output_dim']
-        objective_config['device'] = device
-        prior_objective = ObjectiveFactory().create(prior_config['objective']['objective_name'],
-                                                    **objective_config)
+        objective_config = prior_config["objective"].copy()
+        objective_config.pop("objective_name", None)
+        objective_config["num_classes"] = model_config["output_dim"]
+        objective_config["device"] = device
+        prior_objective = ObjectiveFactory().create(
+            prior_config["objective"]["objective_name"], **objective_config
+        )
 
         # Select trainer
         prior_trainer = TrainerFactory().create(prior_config["trainer_name"], device)
 
         # Train model
         training_config = {
-            'epochs': prior_config['epochs'],
-            'disable_tqdm': training_pipeline_config['disable_tqdm'],
-            'train_loader': prior_loader,
-            'val_loader': val_loader,
-            'num_samples': len(prior_loader) * prior_loader.batch_size
+            "epochs": prior_config["epochs"],
+            "disable_tqdm": training_pipeline_config["disable_tqdm"],
+            "train_loader": prior_loader,
+            "val_loader": val_loader,
+            "num_samples": len(prior_loader) * prior_loader.batch_size,
         }
         prior_model = prior_trainer.train(
             model=prior_model,
             optimizer=prior_optimizer,
             objective=prior_objective,
-            training_config=training_config
+            training_config=training_config,
         )
 
         return
 
         # Posterior training
-        logger.info('Train posterior')
+        logger.info("Train posterior")
 
         posterior_trainer = TrainerFactory().create(
             training_pipeline_config["posterior"]["trainer_name"]

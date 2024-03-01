@@ -51,7 +51,9 @@ class PBP3Model(AbstractPBPModel):
             self._device,
         )
 
-    def forward(self, x: Tensor, sample: bool = False, clamping: bool = True, pmin: float = 1e-5) -> Tensor:
+    def forward(
+        self, x: Tensor, sample: bool = False, clamping: bool = True, pmin: float = 1e-5
+    ) -> Tensor:
         # TODO: move default values to settings
         x = x.view(-1, self._input_dim)
         x = F.relu(self.l1(x, sample))

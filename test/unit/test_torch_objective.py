@@ -6,12 +6,10 @@ from core.trainer import TorchOptimizerFactory
 
 @pytest.mark.parametrize(
     "optimizer_name, parameters",
-    [
-        ('sgd', {'lr': 0.001, 'momentum': 0.9})
-    ],
+    [("sgd", {"lr": 0.001, "momentum": 0.9})],
 )
 def test_torch_objective(optimizer_name, parameters, pbp3_model):
-    parameters['params'] = pbp3_model.parameters()
+    parameters["params"] = pbp3_model.parameters()
     optimizer = TorchOptimizerFactory().create(optimizer_name, **parameters)
     criterion = torch.nn.CrossEntropyLoss()
     x = torch.ones((28, 28))

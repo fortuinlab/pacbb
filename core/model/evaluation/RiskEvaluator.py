@@ -1,14 +1,16 @@
-from torch import Tensor
 import numpy as np
 import torch.nn.functional as F
+from torch import Tensor
 
 
 class RiskEvaluator:
     @staticmethod
-    def compute_empirical_risk(outputs: Tensor, targets: Tensor, pmin: float, bounded=True) -> Tensor:
+    def compute_empirical_risk(
+        outputs: Tensor, targets: Tensor, pmin: float, bounded=True
+    ) -> Tensor:
         empirical_risk = F.nll_loss(outputs, targets)
         if bounded:
-            empirical_risk = empirical_risk / (np.log(1. / pmin))
+            empirical_risk = empirical_risk / (np.log(1.0 / pmin))
         return empirical_risk
 
     @staticmethod

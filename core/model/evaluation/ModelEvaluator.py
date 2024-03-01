@@ -1,15 +1,22 @@
-from tqdm import tqdm
 import numpy as np
 import torch
 from torch.utils.data import dataloader
+from tqdm import tqdm
 
+from core.model.evaluation import RiskEvaluator
 from core.model.probabilistic import AbstractPBPModel
 from core.trainer.objective import AbstractObjective
-from core.model.evaluation import RiskEvaluator
+
 
 class ModelEvaluator:
     @staticmethod
-    def evaluate_stochastic(model: AbstractPBPModel, loader: dataloader, objective: AbstractObjective, samples: int, device: torch.device):
+    def evaluate_stochastic(
+        model: AbstractPBPModel,
+        loader: dataloader,
+        objective: AbstractObjective,
+        samples: int,
+        device: torch.device,
+    ):
         # TODO: refactor
         model.eval()
         correct, cross_entropy, total = 0, 0.0, 0.0
@@ -21,8 +28,12 @@ class ModelEvaluator:
                     # outputs = torch.zeros(len(target), pbobj.classes).to(self._device)
                     data = data.to(device)
                     target = target.to(device)
-                    outputs = model(data, sample=True, clamping=True, pmin=objective._pmin)
-                    cross_entropy += RiskEvaluator.compute_empirical_risk(outputs, target.long(), bounded=True, pmin=objective._pmin).item()
+                    outputs = model(
+                        data, sample=True, clamping=True, pmin=objective._pmin
+                    )
+                    cross_entropy += RiskEvaluator.compute_empirical_risk(
+                        outputs, target.long(), bounded=True, pmin=objective._pmin
+                    ).item()
                     pred = outputs.max(1, keepdim=True)[1]
                     correct += pred.eq(target.view_as(pred)).sum().item()
                     total += target.size(0)

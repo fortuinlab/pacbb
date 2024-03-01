@@ -7,6 +7,7 @@ class KLDivergenceInterface(ABC):
     """
     An abstract base class for computing Kullback-Leibler Divergence (KL Divergence).
     """
+
     @abstractmethod
     def compute_kl(self, *args, **kwargs) -> torch.Tensor:
         """

@@ -8,7 +8,15 @@ from core.trainer.objective import ObjectiveFactory
 @pytest.mark.parametrize(
     "objective_name, parameters",
     [
-        ('bbb', {'kl_penalty': 0.001, 'pmin': 1e-4, 'num_classes': 10, 'device': torch.device('cpu')})
+        (
+            "bbb",
+            {
+                "kl_penalty": 0.001,
+                "pmin": 1e-4,
+                "num_classes": 10,
+                "device": torch.device("cpu"),
+            },
+        )
     ],
 )
 def test_torch_objective(objective_name, parameters, pbp3_model):
@@ -28,10 +36,9 @@ def test_torch_objective(objective_name, parameters, pbp3_model):
     assert bound >= 0
 
     torch.manual_seed(42)
-    bound_copy, kl_copy, y_pred_copy, loss_ce_copy, loss_01 = objective.train_objective(model=pbp3_model,
-                                                                                        data=x,
-                                                                                        target=target.long(),
-                                                                                        num_samples=1)
+    bound_copy, kl_copy, y_pred_copy, loss_ce_copy, loss_01 = objective.train_objective(
+        model=pbp3_model, data=x, target=target.long(), num_samples=1
+    )
     assert bound == bound_copy
     assert kl == kl_copy
     assert torch.eq(y_pred, y_pred_copy).all()

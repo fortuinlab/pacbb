@@ -1,6 +1,7 @@
 import torch
 
-from core.trainer import AbstractTrainer, MarglikTrainer, PBPProbabilisticTrainer
+from core.trainer import (AbstractTrainer, MarglikTrainer,
+                          PBPProbabilisticTrainer)
 from core.utils import AbstractFactory
 
 
