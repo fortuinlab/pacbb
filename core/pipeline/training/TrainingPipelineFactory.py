@@ -13,4 +13,4 @@ class TrainingPipelineFactory(AbstractFactory):
         creator = self._creators.get(training_pipeline_name)
         if not creator:
             raise ValueError(f"Invalid training pipeline: {training_pipeline_name}")
-        return creator(training_pipeline_name)
+        return creator()

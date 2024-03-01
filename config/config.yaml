@@ -14,7 +14,7 @@ training_pipeline:
     epochs: 10
     optimizer:
       optimizer_name: sgd
-      lr: 0.001,
+      lr: 0.001
       momentum: 0.90
     objective:
       objective_name: bbb

@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from torch import Tensor
 
 from core.model.probabilistic import AbstractPBPModel
 from core.model.probabilistic.layer import ProbabilisticLinearLayer
@@ -50,7 +51,7 @@ class PBP3Model(AbstractPBPModel):
             self._device,
         )
 
-    def forward(self, x, sample: bool = False, clamping: bool = True, pmin: float = 1e-4):
+    def forward(self, x: Tensor, sample: bool, clamping: bool, pmin: float) -> Tensor:
         # TODO: move default values to settings
         x = x.view(-1, self._input_dim)
         x = F.relu(self.l1(x, sample))
@@ -59,7 +60,7 @@ class PBP3Model(AbstractPBPModel):
         x = self.output_transform(x, clamping, pmin)
         return x
 
-    def compute_kl(self, recompute: bool = True) -> torch.Tensor:
+    def compute_kl(self, recompute: bool = True) -> Tensor:
         if recompute:
             return self.l1.compute_kl() + self.l2.compute_kl() + self.l3.compute_kl()
         else:

@@ -29,7 +29,7 @@ class AbstractTrainingPipeline(AbstractPipeline, ABC):
     @abstractmethod
     def train(
         self,
-        model_config: Dict,
+        training_pipeline_config: Dict,
         dataset_config: Dict,
         split_strategy_config: Dict,
         device: torch.device,
