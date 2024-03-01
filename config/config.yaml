@@ -11,7 +11,7 @@ training_pipeline:
     weight_initialization_method: 'random'
   prior:
     trainer_name: pbp  # marglik or None
-    epochs: 100
+    epochs: 5
     optimizer:
       optimizer_name: sgd
       lr: 0.001

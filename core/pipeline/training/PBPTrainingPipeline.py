@@ -32,6 +32,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         self._dataset_handler.load_and_split_dataset()
 
         prior_loader = self._dataset_handler.split_strategy.prior_loader
+        val_loader = self._dataset_handler.split_strategy.val_loader
 
         # Select model
         logger.info('Select model')
@@ -72,9 +73,10 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             'epochs': prior_config['epochs'],
             'disable_tqdm': training_pipeline_config['disable_tqdm'],
             'train_loader': prior_loader,
+            'val_loader': val_loader,
             'num_samples': len(prior_loader) * prior_loader.batch_size
         }
-        prior_trainer.train(
+        prior_model = prior_trainer.train(
             model=prior_model,
             optimizer=prior_optimizer,
             objective=prior_objective,

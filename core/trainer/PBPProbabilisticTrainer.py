@@ -4,21 +4,28 @@ from tqdm import trange, tqdm
 import torch
 from torch.utils.data import dataloader
 
+
 from core.model.probabilistic import AbstractPBPModel
 from core.trainer import AbstractTrainer
 from core.trainer.objective import AbstractObjective
+from core.trainer.callback import StochasticNLLCallback
 from core.utils import logger
 
 
 class PBPProbabilisticTrainer(AbstractTrainer):
     def __init__(self, device: torch.device):
         super().__init__(device)
+        # TODO: add multiple callbacks; add parameter to config
+        self._callback = StochasticNLLCallback(device)
 
     def train(self, model: AbstractPBPModel, optimizer: torch.optim.Optimizer, objective: AbstractObjective, training_config: Dict) -> AbstractPBPModel:
         epochs = training_config['epochs']
         disable_tqdm = training_config['disable_tqdm']
         train_loader = training_config['train_loader']
+        val_loader = training_config['val_loader']
         num_samples = training_config['num_samples']
+
+        self._callback.reset()
 
         for epoch in trange(epochs, disable=disable_tqdm):
             self._step(model,
@@ -28,6 +35,12 @@ class PBPProbabilisticTrainer(AbstractTrainer):
                        train_loader,
                        num_samples,
                        disable_tqdm)
+
+            self._callback.process(model, val_loader, objective)
+
+        model = self._callback.finish(model, val_loader, objective)
+
+        return model
 
     def _step(self, model: AbstractPBPModel,
               optimizer: torch.optim.Optimizer,
@@ -39,6 +52,7 @@ class PBPProbabilisticTrainer(AbstractTrainer):
         model.train()
 
         cum_bound, cum_kl, cum_loss_ce, cum_loss_01 = 0.0, 0.0, 0.0, 0.0
+        batch, bound, kl, loss_ce, loss_01 = None, None, None, None, None
 
         for batch, (data, targets) in enumerate(tqdm(train_loader, disable=disable_tqdm)):
             data = data.to(self._device)
