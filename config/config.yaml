@@ -1,6 +1,9 @@
 training_pipeline:
   training_pipeline_name: pbp
   disable_tqdm: True
+  num_mc_samples: 1000
+  delta: 0.025
+  delta_test: 0.01
   model:
     model_name: pbp3
     model_weight_distribution: 'gaussian'

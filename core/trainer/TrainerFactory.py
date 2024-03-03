@@ -12,8 +12,8 @@ class TrainerFactory(AbstractFactory):
         self.register_creator("pbp", PBPProbabilisticTrainer)
         self.register_creator("marglik", MarglikTrainer)
 
-    def create(self, trainer_name: str, device: torch.device) -> AbstractTrainer:
+    def create(self, trainer_name: str, callback_name: str, device: torch.device) -> AbstractTrainer:
         creator = self._creators.get(trainer_name)
         if not creator:
             raise ValueError(f"Invalid trainer: {trainer_name}")
-        return creator(device)
+        return creator(callback_name, device)

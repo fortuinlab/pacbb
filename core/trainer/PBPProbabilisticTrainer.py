@@ -7,16 +7,22 @@ from tqdm import tqdm, trange
 
 from core.model.probabilistic import AbstractPBPModel
 from core.trainer import AbstractTrainer
-from core.trainer.callback import StochasticNLLCallback
+from core.trainer.callback import StochasticNLLCallback, BoundCallback
 from core.trainer.objective import AbstractObjective
 from core.utils import logger
 
 
 class PBPProbabilisticTrainer(AbstractTrainer):
-    def __init__(self, device: torch.device):
+    def __init__(self, callback_name: str, device: torch.device):
         super().__init__(device)
         # TODO: add multiple callbacks; add parameter to config
-        self._callback = StochasticNLLCallback(device)
+        self._callback_name = callback_name
+        if callback_name == 'stochastic_nll':
+            self._callback = StochasticNLLCallback(device)
+        elif callback_name == 'bound':
+            self._callback = BoundCallback(device)
+        else:
+            raise ValueError(f'Invalid callback name: {callback_name}')
 
     def train(
         self,
