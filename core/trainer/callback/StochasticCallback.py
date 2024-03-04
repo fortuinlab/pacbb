@@ -15,42 +15,46 @@ from core.utils import logger
 class StochasticNLLCallback(AbstractCallback):
     def __init__(self, device: torch.device):
         super().__init__(device)
-        self._best_val_nll_loss = np.inf
+        self._best_loss = np.inf
         self._best_model = None
 
     def reset(self) -> None:
-        self._best_val_nll_loss = np.inf
+        self._best_loss = np.inf
         self._best_model = None
 
     def process(
         self,
+        epoch: int,
         model: AbstractPBPModel,
-        loader: data.Dataset,
+        train_loader: data.Dataset,
+        val_loader: data.Dataset,
         objective: AbstractObjective,
     ) -> None:
-        if loader is not None:
-            val_loss, _, _ = ModelEvaluator.evaluate_stochastic(
-                model, loader, objective, 1, self._device
+        if val_loader is not None:
+            loss, _, _ = ModelEvaluator.evaluate_stochastic(
+                model, val_loader, objective, 1, self._device
             )
-            if val_loss < self._best_val_nll_loss:
+            if loss < self._best_loss:
                 logger.info(
                     json.dumps(
                         {
-                            "nll_loss": round(val_loss, 3),
-                            "best_nll_loss": round(self._best_val_nll_loss, 3),
+                            "loss": round(loss, 5),
+                            "best_loss": round(self._best_loss, 5),
                         }
                     )
                 )
                 self._best_model = copy.deepcopy(model)
-                self._best_val_nll_loss = val_loss
+                self._best_loss = loss
 
     def finish(
         self,
+        epoch: int,
         model: AbstractPBPModel,
-        loader: data.Dataset,
+        train_loader: data.Dataset,
+        val_loader: data.Dataset,
         objective: AbstractObjective,
     ) -> AbstractPBPModel:
-        if loader is not None and self._best_model is not None:
+        if val_loader is not None and self._best_model is not None:
             return self._best_model
         else:
             return model
