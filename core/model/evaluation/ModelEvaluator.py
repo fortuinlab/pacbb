@@ -18,7 +18,7 @@ class ModelEvaluator:
         objective: AbstractObjective,
         samples: int,
         device: torch.device,
-    ):
+    ) -> Dict[str, float]:
         # TODO: refactor
         model.eval()
         correct, cross_entropy, total = 0, 0.0, 0.0
@@ -27,7 +27,6 @@ class ModelEvaluator:
         with torch.no_grad():
             for j in range(samples):
                 for batch_id, (data, target) in enumerate(tqdm(loader, disable=True)):
-                    # outputs = torch.zeros(len(target), pbobj.classes).to(self._device)
                     data = data.to(device)
                     target = target.to(device)
                     outputs = model(
@@ -39,7 +38,9 @@ class ModelEvaluator:
                     correct += pred.eq(target.view_as(pred)).sum().item()
                     total += target.size(0)
                 err_samples[j] = 1 - (correct / total)
-        return cross_entropy / (batch_id + 1), np.mean(err_samples), np.std(err_samples)
+        # TODO: should remove np.std(err_samples)?
+        return {'loss_ce': cross_entropy / (batch_id + 1),
+                'loss_01': np.mean(err_samples)}
 
     @staticmethod
     def evaluate_risk(

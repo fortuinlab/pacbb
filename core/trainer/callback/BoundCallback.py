@@ -15,44 +15,52 @@ from core.utils import logger
 class BoundCallback(AbstractCallback):
     def __init__(self, freq_test, device: torch.device):
         super().__init__(device)
+        self._risk_name = 'risk_01'  # todo: move to parameters?
         self._freq_test = freq_test
-        self._best_val_risk = np.inf
+        self._best_risk = np.inf
         self._best_model = None
 
     def reset(self) -> None:
-        self._best_val_risk = np.inf
+        self._best_risk = np.inf
         self._best_model = None
 
     def process(
         self,
         epoch: int,
         model: AbstractPBPModel,
-        loader: data.Dataset,
+        train_loader: data.Dataset,
+        val_loader: data.Dataset,
         objective: AbstractObjective,
     ) -> None:
-        if loader is not None and (epoch+1) % self._freq_test == 0:
-            val_risk, _, _ = ModelEvaluator.evaluate_stochastic(
-                model, loader, objective, 1, self._device
+        if val_loader is not None and (epoch+1) % self._freq_test == 0:
+            evaluation_result_dict = ModelEvaluator.evaluate_risk(
+                model=model,
+                loader=train_loader,
+                bound_loader=val_loader,
+                objective=objective,
+                device=self._device,
             )
-            if val_risk < self._best_val_risk:
-                logger.info(
-                    json.dumps(
-                        {
-                            "nll_loss": round(val_risk, 3),
-                            "best_nll_loss": round(self._best_val_risk, 3),
-                        }
-                    )
+            logger.info(
+                json.dumps(
+                    {
+                        f"{self._risk_name}_risk": round(evaluation_result_dict[self._risk_name], 5),
+                        f"{self._risk_name}_best_risk": round(self._best_risk, 5),
+                    }
                 )
+            )
+            if evaluation_result_dict[self._risk_name] < self._best_risk:
+                logger.info('Updated best model')
                 self._best_model = copy.deepcopy(model)
-                self._best_val_risk = val_risk
+                self._best_risk = evaluation_result_dict[self._risk_name]
 
     def finish(
         self,
         model: AbstractPBPModel,
-        loader: data.Dataset,
+        train_loader: data.Dataset,
+        val_loader: data.Dataset,
         objective: AbstractObjective,
     ) -> AbstractPBPModel:
-        if loader is not None and self._best_model is not None:
+        if val_loader is not None and self._best_model is not None:
             return self._best_model
         else:
             return model

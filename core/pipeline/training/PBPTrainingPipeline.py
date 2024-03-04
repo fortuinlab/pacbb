@@ -9,6 +9,7 @@ from core.pipeline.training import AbstractTrainingPipeline
 from core.trainer import TorchOptimizerFactory, TrainerFactory
 from core.trainer.objective import ObjectiveFactory
 from core.model.evaluation import ModelEvaluator
+from core.trainer.callback import StochasticCallback, BoundCallback
 from core.utils import logger
 
 
@@ -74,7 +75,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         )
 
         # Select trainer
-        prior_trainer = TrainerFactory().create(prior_config["trainer_name"], 'stochastic_nll', device)
+        prior_trainer = TrainerFactory().create(prior_config["trainer_name"], StochasticCallback(device), device)
 
         # Train model
         training_config = {
@@ -136,8 +137,10 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             posterior_config["objective"]["objective_name"], **objective_config
         )
 
+        # TODO: move freq_test to prams
+        freq_test = 3
         # Select trainer
-        posterior_trainer = TrainerFactory().create(posterior_config["trainer_name"], 'stochastic_nll', device)
+        posterior_trainer = TrainerFactory().create(posterior_config["trainer_name"], BoundCallback(freq_test, device), device)
 
         # Train model
         training_config = {
@@ -157,7 +160,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         # Evaluate model
         logger.info("Evaluate")
         model_evaluation_dict = ModelEvaluator.evaluate_risk(posterior_model,
-                                                             posterior_model,
+                                                             posterior_loader,
                                                              bound_loader_1batch,
                                                              posterior_objective,
                                                              device)

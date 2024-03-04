@@ -1,0 +1,10 @@
+trainer_name: pbp
+epochs: 5
+optimizer:
+  optimizer_name: sgd
+  lr: 0.001
+  momentum: 0.90
+objective:
+  objective_name: bbb
+  kl_penalty: 1.
+  pmin: 1e-5

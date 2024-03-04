@@ -54,7 +54,7 @@ class AbstractObjective(ABC):
         loss_01 = RiskEvaluator.compute_01_empirical_risk(outputs, targets)
         return loss_ce, loss_01, outputs
 
-    def _compute_empirical_risk(self, model: AbstractPBPModel, data: Tensor, targets: Tensor, clamping: bool) -> Tuple[float, float]:
+    def _compute_avg_loss(self, model: AbstractPBPModel, data: Tensor, targets: Tensor, clamping: bool) -> Tuple[float, float]:
         # TODO: change name
         loss_ce_mc = 0.0
         loss_01_mc = 0.0
@@ -69,7 +69,7 @@ class AbstractObjective(ABC):
     def compute_risks(self, model: AbstractPBPModel, data: Tensor, targets: Tensor, num_samples: int, num_samples_bound: int) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         kl = model.compute_kl()
 
-        avg_loss_ce, avg_loss_01 = self._compute_empirical_risk(model, data, targets, True)
+        avg_loss_ce, avg_loss_01 = self._compute_avg_loss(model, data, targets, True)
 
         empirical_risk_ce = self.inv_kl(avg_loss_ce, math.log(2 / self._delta_test) / self._num_mc_samples)
         empirical_risk_01 = self.inv_kl(avg_loss_01, math.log(2 / self._delta_test) / self._num_mc_samples)
