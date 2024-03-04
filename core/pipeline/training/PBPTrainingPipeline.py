@@ -1,4 +1,3 @@
-import json
 from typing import Dict
 
 import torch
@@ -99,7 +98,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
                                                              bound_loader_1batch,
                                                              prior_objective,
                                                              device)
-        logger.info(json.dumps(model_evaluation_dict))
+        logger.info(model_evaluation_dict)
 
         # Posterior training
         logger.info("Train posterior")
@@ -164,7 +163,7 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
                                                              bound_loader_1batch,
                                                              posterior_objective,
                                                              device)
-        logger.info(json.dumps(model_evaluation_dict))
+        logger.info(model_evaluation_dict)
         
         # Save models
         self._prior_model = prior_model

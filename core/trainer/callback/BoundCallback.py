@@ -1,5 +1,4 @@
 import copy
-import json
 
 import numpy as np
 import torch
@@ -41,12 +40,10 @@ class BoundCallback(AbstractCallback):
                 device=self._device,
             )
             logger.info(
-                json.dumps(
-                    {
-                        f"{self._risk_name}_risk": round(evaluation_result_dict[self._risk_name], 5),
-                        f"{self._risk_name}_best_risk": round(self._best_risk, 5),
-                    }
-                )
+                {
+                    f"{self._risk_name}_risk": round(evaluation_result_dict[self._risk_name], 5),
+                    f"{self._risk_name}_best_risk": round(self._best_risk, 5),
+                }
             )
             if evaluation_result_dict[self._risk_name] < self._best_risk:
                 logger.info('Updated best model')

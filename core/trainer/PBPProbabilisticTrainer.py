@@ -1,4 +1,3 @@
-import json
 from typing import Dict
 
 import torch
@@ -132,4 +131,4 @@ class PBPProbabilisticTrainer(AbstractTrainer):
             "loss_ce": round(loss_ce, round_),
             "loss_01": round(loss_01, round_),
         }
-        return json.dumps(message)
+        return message

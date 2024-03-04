@@ -1,5 +1,4 @@
 import copy
-import json
 
 import numpy as np
 import torch
@@ -36,12 +35,10 @@ class StochasticCallback(AbstractCallback):
                 model, val_loader, objective, 1, self._device
             )
             logger.info(
-                json.dumps(
                     {
                         f"{self._loss_name}_loss": round(evaluation_result_dict[self._loss_name], 5),
                         f"{self._loss_name}_best_loss": round(self._best_loss, 5),
                     }
-                )
             )
             if evaluation_result_dict[self._loss_name] < self._best_loss:
                 logger.info('Updated best model')
