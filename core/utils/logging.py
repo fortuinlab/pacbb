@@ -16,12 +16,19 @@ class JSONLogger(logging.Logger):
     @staticmethod
     def get_logger() -> 'JSONLogger':
         logger_ = JSONLogger("pacbb", logging.DEBUG)
+        formatter = logging.Formatter(JSONLogger.MESSAGE_FORMAT, datefmt=JSONLogger.DATE_FORMAT)
 
         console_handler = logging.StreamHandler(stream=sys.stdout)
         console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(logging.Formatter(JSONLogger.MESSAGE_FORMAT, datefmt=JSONLogger.DATE_FORMAT))
+        console_handler.setFormatter(formatter)
 
         logger_.addHandler(console_handler)
+
+        file_handler = logging.FileHandler(filename="logs/pacbb.log")
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+
+        logger_.addHandler(file_handler)
 
         return logger_
 

@@ -6,3 +6,5 @@ __pycache__/
 # data
 data/
 outputs/
+# logs
+/logs/
