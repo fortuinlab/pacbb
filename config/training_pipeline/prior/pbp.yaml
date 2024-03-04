@@ -1,0 +1,10 @@
+trainer_name: pbp  # marglik or None
+epochs: 25
+optimizer:
+  optimizer_name: sgd
+  lr: 0.001
+  momentum: 0.95
+objective:
+  objective_name: bbb
+  kl_penalty: 0.001
+  pmin: 1e-4

@@ -7,6 +7,8 @@ from core.model.probabilistic import PBP3Model
 from core.pipeline.training import AbstractTrainingPipeline
 from core.trainer import TorchOptimizerFactory, TrainerFactory
 from core.trainer.objective import ObjectiveFactory
+from core.model.evaluation import ModelEvaluator
+from core.trainer.callback import StochasticCallback, BoundCallback
 from core.utils import logger
 
 
@@ -64,12 +66,15 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         objective_config.pop("objective_name", None)
         objective_config["num_classes"] = model_config["output_dim"]
         objective_config["device"] = device
+        objective_config["num_mc_samples"] = training_pipeline_config["num_mc_samples"]
+        objective_config["delta"] = training_pipeline_config["delta"]
+        objective_config["delta_test"] = training_pipeline_config["delta_test"]
         prior_objective = ObjectiveFactory().create(
             prior_config["objective"]["objective_name"], **objective_config
         )
 
         # Select trainer
-        prior_trainer = TrainerFactory().create(prior_config["trainer_name"], device)
+        prior_trainer = TrainerFactory().create(prior_config["trainer_name"], StochasticCallback(device), device)
 
         # Train model
         training_config = {
@@ -85,6 +90,15 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             objective=prior_objective,
             training_config=training_config,
         )
+
+        # Evaluate model
+        logger.info("Evaluate")
+        model_evaluation_dict = ModelEvaluator.evaluate_risk(prior_model,
+                                                             prior_loader,
+                                                             bound_loader_1batch,
+                                                             prior_objective,
+                                                             device)
+        logger.info(model_evaluation_dict)
 
         # Posterior training
         logger.info("Train posterior")
@@ -115,12 +129,17 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         objective_config.pop("objective_name", None)
         objective_config["num_classes"] = model_config["output_dim"]
         objective_config["device"] = device
+        objective_config["num_mc_samples"] = training_pipeline_config["num_mc_samples"]
+        objective_config["delta"] = training_pipeline_config["delta"]
+        objective_config["delta_test"] = training_pipeline_config["delta_test"]
         posterior_objective = ObjectiveFactory().create(
             posterior_config["objective"]["objective_name"], **objective_config
         )
 
+        # TODO: move freq_test to prams
+        freq_test = 3
         # Select trainer
-        posterior_trainer = TrainerFactory().create(posterior_config["trainer_name"], device)
+        posterior_trainer = TrainerFactory().create(posterior_config["trainer_name"], BoundCallback(freq_test, device), device)
 
         # Train model
         training_config = {
@@ -136,6 +155,15 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
             objective=posterior_objective,
             training_config=training_config,
         )
+
+        # Evaluate model
+        logger.info("Evaluate")
+        model_evaluation_dict = ModelEvaluator.evaluate_risk(posterior_model,
+                                                             posterior_loader,
+                                                             bound_loader_1batch,
+                                                             posterior_objective,
+                                                             device)
+        logger.info(model_evaluation_dict)
         
         # Save models
         self._prior_model = prior_model

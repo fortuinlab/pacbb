@@ -16,7 +16,7 @@ def main(config: DictConfig) -> None:
                             dataset_config=config['dataset'],
                             split_strategy_config=config['split_strategy'],
                             device=device)
-
+    #
     # evaluation_pipeline = EvaluationPipelineFactory().create(config['evaluation_pipeline']['evaluation_pipeline_name'])
     # evaluation_pipeline.evaluate()
 

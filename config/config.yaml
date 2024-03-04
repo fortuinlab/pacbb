@@ -1,36 +1,15 @@
+defaults:
+  - training_pipeline/model: pbp3
+  - training_pipeline/prior: pbp
+  - training_pipeline/posterior: pbp
+  - override hydra/job_logging: None
+  - override hydra/hydra_logging: None
 training_pipeline:
   training_pipeline_name: pbp
   disable_tqdm: True
-  model:
-    model_name: pbp3
-    model_weight_distribution: 'gaussian'
-    input_dim: 784  # TODO: can be removed in future
-    output_dim: 10
-    hidden_dim: 100
-    sigma: 0.01
-    weight_initialization_method: 'random'
-  prior:
-    trainer_name: pbp  # marglik or None
-    epochs: 5
-    optimizer:
-      optimizer_name: sgd
-      lr: 0.001
-      momentum: 0.95
-    objective:
-      objective_name: bbb
-      kl_penalty: 0.001
-      pmin: 1e-5
-  posterior:
-    trainer_name: pbp
-    epochs: 5
-    optimizer:
-      optimizer_name: sgd
-      lr: 0.001
-      momentum: 0.90
-    objective:
-      objective_name: bbb
-      kl_penalty: 1.
-      pmin: 1e-5
+  num_mc_samples: 1000
+  delta: 0.025
+  delta_test: 0.01
 evaluation_pipeline:
   evaluation_pipeline_name: pbp
 dataset:

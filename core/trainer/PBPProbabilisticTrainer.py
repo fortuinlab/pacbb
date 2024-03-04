@@ -1,4 +1,3 @@
-import json
 from typing import Dict
 
 import torch
@@ -7,16 +6,16 @@ from tqdm import tqdm, trange
 
 from core.model.probabilistic import AbstractPBPModel
 from core.trainer import AbstractTrainer
-from core.trainer.callback import StochasticNLLCallback
 from core.trainer.objective import AbstractObjective
+from core.trainer.callback import AbstractCallback
 from core.utils import logger
 
 
 class PBPProbabilisticTrainer(AbstractTrainer):
-    def __init__(self, device: torch.device):
+    def __init__(self, callback: AbstractCallback, device: torch.device):
         super().__init__(device)
-        # TODO: add multiple callbacks; add parameter to config
-        self._callback = StochasticNLLCallback(device)
+        # TODO: add multiple callbacks
+        self._callback = callback
 
     def train(
         self,
@@ -44,9 +43,16 @@ class PBPProbabilisticTrainer(AbstractTrainer):
                 disable_tqdm,
             )
 
-            self._callback.process(model, val_loader, objective)
+            self._callback.process(epoch=epoch,
+                                   model=model,
+                                   train_loader=train_loader,
+                                   val_loader=val_loader,
+                                   objective=objective)
 
-        model = self._callback.finish(model, val_loader, objective)
+        model = self._callback.finish(model=model,
+                                      train_loader=train_loader,
+                                      val_loader=val_loader,
+                                      objective=objective)
 
         return model
 
@@ -125,4 +131,4 @@ class PBPProbabilisticTrainer(AbstractTrainer):
             "loss_ce": round(loss_ce, round_),
             "loss_01": round(loss_01, round_),
         }
-        return json.dumps(message)
+        return message
