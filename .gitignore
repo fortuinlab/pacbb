@@ -8,3 +8,5 @@ data/
 outputs/
 # logs
 /logs/
+# other
+/.dev_scripts/
