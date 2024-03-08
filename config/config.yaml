@@ -23,5 +23,5 @@ split_strategy:
   prior_percent: 0.5
   prior_type: learnt   # learnt, not_learnt TODO: leave one parameter, take it from model
   self_certified: True  # True, False, None
-  seed: 7
-  dataset_loader_seed: 10
+  seed: 77
+  dataset_loader_seed: 107

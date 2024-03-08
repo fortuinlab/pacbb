@@ -32,7 +32,7 @@ class ModelEvaluator:
                     outputs = model(
                         data, sample=True, clamping=True, pmin=objective._pmin
                     )
-                    cross_entropy += RiskEvaluator.compute_empirical_risk(
+                    cross_entropy += RiskEvaluator.compute_ce_empirical_loss(
                         outputs, target.long(), True, objective._pmin).item()
                     pred = outputs.max(1, keepdim=True)[1]
                     correct += pred.eq(target.view_as(pred)).sum().item()
