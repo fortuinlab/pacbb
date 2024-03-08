@@ -10,6 +10,7 @@ from core.trainer.objective import ObjectiveFactory
 from core.model.evaluation import ModelEvaluator
 from core.trainer.callback import StochasticCallback, BoundCallback
 from core.utils import logger
+from core.bound import KLBound
 
 
 class PBPTrainingPipeline(AbstractTrainingPipeline):
@@ -67,8 +68,9 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         objective_config["num_classes"] = model_config["output_dim"]
         objective_config["device"] = device
         objective_config["num_mc_samples"] = training_pipeline_config["num_mc_samples"]
-        objective_config["delta"] = training_pipeline_config["delta"]
-        objective_config["delta_test"] = training_pipeline_config["delta_test"]
+        # Select bound
+        bound = KLBound(training_pipeline_config["delta"], training_pipeline_config["delta_test"])
+        objective_config["bound"] = bound
         prior_objective = ObjectiveFactory().create(
             prior_config["objective"]["objective_name"], **objective_config
         )
@@ -130,8 +132,9 @@ class PBPTrainingPipeline(AbstractTrainingPipeline):
         objective_config["num_classes"] = model_config["output_dim"]
         objective_config["device"] = device
         objective_config["num_mc_samples"] = training_pipeline_config["num_mc_samples"]
-        objective_config["delta"] = training_pipeline_config["delta"]
-        objective_config["delta_test"] = training_pipeline_config["delta_test"]
+        # Select bound
+        bound = KLBound(training_pipeline_config["delta"], training_pipeline_config["delta_test"])
+        objective_config["bound"] = bound
         posterior_objective = ObjectiveFactory().create(
             posterior_config["objective"]["objective_name"], **objective_config
         )

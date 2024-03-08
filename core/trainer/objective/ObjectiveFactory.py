@@ -1,5 +1,6 @@
 from core.trainer.objective import AbstractObjective, BBBObjective
 from core.utils import AbstractFactory
+from core.bound import AbstractBound
 
 
 class ObjectiveFactory(AbstractFactory):

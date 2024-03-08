@@ -1,4 +1,4 @@
-from core.dataset.split_strategy import AbstractSplitStrategy, PBPSplitStrategy
+from core.dataset.split_strategy import AbstractSplitStrategy, PBPSplitStrategy, FaultySplitStrategy
 from core.utils import AbstractFactory
 
 
@@ -10,6 +10,7 @@ class SplitStrategyFactory(AbstractFactory):
     def __init__(self) -> None:
         super().__init__()
         self.register_creator("pbp", PBPSplitStrategy)
+        self.register_creator("faulty_pbp", FaultySplitStrategy)
 
     def create(self, split_strategy_name: str) -> AbstractSplitStrategy:
         """

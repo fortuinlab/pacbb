@@ -16,12 +16,12 @@ dataset:
   dataset_name: mnist
   dataset_path: ./data/mnist/
 split_strategy:
-  split_strategy_name: pbp
+  split_strategy_name: faulty_pbp
   batch_size: 250
   training_percent: 1.0
   val_percent: 0.05
   prior_percent: 0.5
   prior_type: learnt   # learnt, not_learnt TODO: leave one parameter, take it from model
   self_certified: True  # True, False, None
-  seed: 7
-  dataset_loader_seed: 10
+  seed: 1
+  dataset_loader_seed: 2
