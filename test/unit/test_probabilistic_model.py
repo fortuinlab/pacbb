@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-from core.model.probabilistic import PBP3Model
+from app.model import PBP3Model
 
 
 def test_probabilistic_pbp3_model():

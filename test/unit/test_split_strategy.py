@@ -2,8 +2,8 @@ from typing import Any, List, Set
 
 import pytest
 
-from core.dataset.loader import DatasetLoaderFactory
-from core.dataset.split_strategy import PBPSplitStrategy
+from app.dataset.loader import DatasetLoaderFactory
+from app.dataset.split_strategy import PBPSplitStrategy
 
 
 # TODO: move to utils

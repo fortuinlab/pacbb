@@ -1,7 +1,7 @@
 import pytest
 from torch.utils import data
 
-from core.dataset.loader import DatasetLoaderFactory
+from app.dataset.loader import DatasetLoaderFactory
 
 
 @pytest.mark.parametrize(

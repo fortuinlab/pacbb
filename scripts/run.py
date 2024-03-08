@@ -2,9 +2,7 @@ import hydra
 import torch
 from omegaconf import DictConfig, OmegaConf
 
-from core.pipeline.training import TrainingPipelineFactory
-from core.pipeline.evaluaiton import EvaluationPipelineFactory
-from core.utils import logger
+from app.pipeline.training import TrainingPipelineFactory
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")

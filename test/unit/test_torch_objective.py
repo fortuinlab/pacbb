@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from core.trainer import TorchOptimizerFactory
+from app.trainer import TorchOptimizerFactory
 
 
 @pytest.mark.parametrize(

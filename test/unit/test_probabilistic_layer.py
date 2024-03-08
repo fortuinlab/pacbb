@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-from core.model.probabilistic.layer import ProbabilisticLinearLayer
+from app.model import ProbabilisticLinearLayer
 
 
 def test_probabilistic_linear_layer():

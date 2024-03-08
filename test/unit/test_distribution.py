@@ -1,6 +1,6 @@
 import torch
 
-from core.model.probabilistic.distribution import GaussianVariable
+from app.model import GaussianVariable
 
 
 def test_gaussian_distribution():

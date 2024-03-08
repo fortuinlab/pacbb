@@ -1,8 +1,7 @@
 import pytest
 import torch
-import torch.nn.functional as F
 
-from core.trainer.objective import ObjectiveFactory
+from app.trainer import ObjectiveFactory
 
 
 @pytest.mark.parametrize(
