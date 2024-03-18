@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from app.dataset.loader import AbstractLoader, DatasetLoaderFactory
+from core.dataset.loader import AbstractLoader, DatasetLoaderFactory
 from app.model import PBP3Model
 
 

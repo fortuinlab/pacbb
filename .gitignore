@@ -9,4 +9,4 @@ outputs/
 # logs
 /logs/
 # other
-/.dev_scripts/
+/dev_scripts/

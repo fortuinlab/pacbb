@@ -6,7 +6,7 @@ import torch
 from torch.utils import data
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from app.dataset.split_strategy import PBPSplitStrategy
+from core.split_strategy import PBPSplitStrategy
 
 
 @dataclass

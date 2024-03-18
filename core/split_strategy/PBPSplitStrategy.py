@@ -6,8 +6,8 @@ import torch
 from torch.utils import data
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from app.dataset.loader import CIFAR10Loader, MNISTLoader
-from app.dataset.split_strategy import AbstractSplitStrategy
+from core.dataset.loader import CIFAR10Loader, MNISTLoader
+from core.split_strategy import AbstractSplitStrategy
 
 
 @dataclass
@@ -24,6 +24,13 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     bound_loader: data.dataloader.DataLoader = None
     bound_loader_1batch: data.dataloader.DataLoader = None
 
+    def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+        self._prior_type = prior_type
+        self._train_percent = train_percent
+        self._val_percent = val_percent
+        self._prior_percent = prior_percent
+        self._self_certified = self_certified
+
     def _split_not_learnt(
         self,
         train_dataset: data.Dataset,
@@ -32,8 +39,8 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
         seed = split_config["seed"]
 
         train_size = len(train_dataset.data)
@@ -99,9 +106,9 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
-        prior_percent = split_config["prior_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
+        prior_percent = self._prior_percent
         seed = split_config["seed"]
 
         train_test_dataset = torch.utils.data.ConcatDataset(
@@ -185,9 +192,9 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
-        prior_percent = split_config["prior_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
+        prior_percent = self._prior_percent
         seed = split_config["seed"]
 
         train_size = len(train_dataset.data)
@@ -268,25 +275,22 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     def split(
         self, dataset_loader: Union[MNISTLoader, CIFAR10Loader], split_config: Dict
     ) -> None:
-        prior_type = split_config["prior_type"]
-        is_self_certified = split_config["self_certified"]
         dataset_loader_seed = split_config["dataset_loader_seed"]
-
         train_dataset, test_dataset = dataset_loader.load(dataset_loader_seed)
 
         loader_kwargs = (
             {"num_workers": 1, "pin_memory": True} if torch.cuda.is_available() else {}
         )
 
-        if prior_type == "not_learnt":
+        if self._prior_type == "not_learnt":
             self._split_not_learnt(
                 train_dataset=train_dataset,
                 test_dataset=test_dataset,
                 split_config=split_config,
                 loader_kwargs=loader_kwargs,
             )
-        elif prior_type == "learnt":
-            if is_self_certified:
+        elif self._prior_type == "learnt":
+            if self._self_certified:
                 self._split_learnt_self_certified(
                     train_dataset=train_dataset,
                     test_dataset=test_dataset,
@@ -301,4 +305,4 @@ class PBPSplitStrategy(AbstractSplitStrategy):
                     loader_kwargs=loader_kwargs,
                 )
         else:
-            raise ValueError(f"Invalid prior_type: {prior_type}")
+            raise ValueError(f"Invalid prior_type: {self._prior_type}")

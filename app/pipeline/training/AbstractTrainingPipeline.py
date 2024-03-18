@@ -3,7 +3,7 @@ from typing import Dict
 
 import torch
 
-from app.dataset import DatasetHandler
+from core.dataset import DatasetHandler
 from app.model import AbstractModel
 from app.pipeline import AbstractPipeline
 

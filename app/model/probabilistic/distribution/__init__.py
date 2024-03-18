@@ -1,3 +1,4 @@
 from app.model.probabilistic.distribution.AbstractVariable import AbstractVariable
 from app.model.probabilistic.distribution.LaplaceVariable import LaplaceVariable
 from app.model.probabilistic.distribution.GaussianVariable import GaussianVariable
+from app.model.probabilistic.distribution.VariableUtils import VariableUtils

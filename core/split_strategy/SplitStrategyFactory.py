@@ -1,4 +1,4 @@
-from app.dataset.split_strategy import AbstractSplitStrategy, PBPSplitStrategy, FaultySplitStrategy
+from core.split_strategy import AbstractSplitStrategy, PBPSplitStrategy, FaultySplitStrategy
 from app.utils import AbstractFactory
 
 

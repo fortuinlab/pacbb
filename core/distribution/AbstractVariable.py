@@ -4,7 +4,7 @@ from typing import Self
 import torch
 import torch.nn as nn
 
-from app.utils import KLDivergenceInterface
+from core.utils import KLDivergenceInterface
 
 
 class AbstractVariable(nn.Module, KLDivergenceInterface, ABC):
@@ -12,14 +12,12 @@ class AbstractVariable(nn.Module, KLDivergenceInterface, ABC):
         self,
         mu: torch.Tensor,
         rho: torch.Tensor,
-        device: torch.device,
-        fix_mu: bool,
-        fix_rho: bool,
+        mu_requires_grad: bool = False,
+        rho_requires_grad: bool = False,
     ):
         super().__init__()
-        self.mu = nn.Parameter(mu.detach().clone(), requires_grad=not fix_mu)
-        self.rho = nn.Parameter(rho.detach().clone(), requires_grad=not fix_rho)
-        self._device = device
+        self.mu = nn.Parameter(mu.detach().clone(), requires_grad=mu_requires_grad)
+        self.rho = nn.Parameter(rho.detach().clone(), requires_grad=rho_requires_grad)
         self.kl_div = None
 
     @property

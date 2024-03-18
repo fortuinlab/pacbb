@@ -2,7 +2,7 @@ from typing import Dict
 
 import torch
 
-from app.dataset import DatasetHandler
+from core.dataset import DatasetHandler
 from app.model.probabilistic import PBP3Model
 from app.pipeline.training import AbstractTrainingPipeline
 from app.trainer import TorchOptimizerFactory, TrainerFactory

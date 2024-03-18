@@ -1,8 +1,8 @@
 from typing import Dict
 
-from app.dataset.loader import AbstractLoader, DatasetLoaderFactory
-from app.dataset.split_strategy import (AbstractSplitStrategy,
-                                        SplitStrategyFactory)
+from core.dataset.loader import AbstractLoader, DatasetLoaderFactory
+from core.split_strategy import (AbstractSplitStrategy,
+                                 SplitStrategyFactory)
 
 
 class DatasetHandler:
