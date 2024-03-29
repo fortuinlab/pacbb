@@ -4,7 +4,7 @@ import torch
 from torch import Tensor
 
 from app.model import AbstractModel
-from app.utils import KLDivergenceInterface
+from core.utils import KLDivergenceInterface
 
 
 class AbstractPBPModel(AbstractModel, KLDivergenceInterface, ABC):

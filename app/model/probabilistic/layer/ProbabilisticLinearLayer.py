@@ -11,7 +11,7 @@ from app.model.probabilistic.distribution import (AbstractVariable,
                        GaussianVariable,
                        LaplaceVariable)
 from app.model.probabilistic.layer import LayerUtils
-from app.utils import KLDivergenceInterface
+from core.utils import KLDivergenceInterface
 
 
 class ProbabilisticLinearLayer(nn.Module, KLDivergenceInterface):

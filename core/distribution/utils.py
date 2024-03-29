@@ -49,6 +49,25 @@ def from_random(model: nn.Module,
     return distributions
 
 
+def from_zeros(model: nn.Module,
+               get_layers_func: Callable[[nn.Module], List[nn.Module]],
+               rho: Tensor,
+               distribution: Type[AbstractVariable],
+               requires_grad: bool = True) -> Dict[int, dict[str, AbstractVariable]]:
+    distributions = {}
+    for i, layer in enumerate(get_layers_func(model)):
+        weight_distribution = distribution(mu=torch.zeros(layer.out_features, layer.in_features),
+                                           rho=torch.ones(layer.out_features, layer.in_features) * rho,
+                                           mu_requires_grad=requires_grad,
+                                           rho_requires_grad=requires_grad)
+        bias_distribution = distribution(mu=torch.zeros(layer.out_features),
+                                         rho=torch.ones(layer.out_features) * rho,
+                                         mu_requires_grad=requires_grad,
+                                         rho_requires_grad=requires_grad)
+        distributions[i] = {'weight': weight_distribution, 'bias': bias_distribution}
+    return distributions
+
+
 def from_layered(model: torch.nn.Module,
                  attribute_mapping: dict[str, str],
                  get_layers_func: Callable[[nn.Module], List[nn.Module]],
@@ -63,20 +82,38 @@ def from_layered(model: torch.nn.Module,
     return distributions
 
 
-def compute_kl(dist1: Dict[int, Dict[str, AbstractVariable]], dist2: Dict[int, Dict[str, AbstractVariable]]) -> float:
+def from_copy(dist: Dict[int, dict[str, AbstractVariable]],
+              distribution: Type[AbstractVariable],
+              requires_grad: bool = True) -> Dict[int, dict[str, AbstractVariable]]:
+    distributions = {}
+    for i, layer in dist.items():
+        weight_distribution = distribution(mu=layer['weight'].mu.detach().clone(),
+                                           rho=layer['weight'].rho.detach().clone(),
+                                           mu_requires_grad=requires_grad,
+                                           rho_requires_grad=requires_grad)
+        bias_distribution = distribution(mu=layer['bias'].mu.detach().clone(),
+                                         rho=layer['bias'].rho.detach().clone(),
+                                         mu_requires_grad=requires_grad,
+                                         rho_requires_grad=requires_grad)
+        distributions[i] = {'weight': weight_distribution, 'bias': bias_distribution}
+    return distributions
+
+
+def compute_kl(dist1: Dict[int, Dict[str, AbstractVariable]], dist2: Dict[int, Dict[str, AbstractVariable]]) -> Tensor:
     kl_list = []
     for idx in dist1:
         for key in dist1[idx]:
-            kl = dist1[idx][key].compute_kl(dist2[idx][key]).item()
+            kl = dist1[idx][key].compute_kl(dist2[idx][key])
             kl_list.append(kl)
-    return sum(kl_list)
+    return torch.stack(kl_list).sum()
 
 
-def get_params(dist: Dict[int, Dict[str, AbstractVariable]]) -> List[Dict[str, Iterator[Parameter]]]:
+def get_params(dist: Dict[int, Dict[str, AbstractVariable]]) -> List[Parameter]:
     params = []
     for i, layer in dist.items():
         for key, value in layer.items():
-            params.append({'params': [value.mu,  value.rho]})
+            params.append(value.mu)
+            params.append(value.rho)
     return params
 
 

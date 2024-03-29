@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch import Tensor
 import torch.nn as nn
 
-from core.model import probabilistic_call, bounded_probabilistic_call
+from core.model import bounded_call
 from core.distribution import AbstractVariable
 
 
@@ -33,15 +33,13 @@ def zero_one_loss(outputs: Tensor, targets: Tensor, pmin: float = None) -> Tenso
 def compute_losses(model: nn.Module,
                    inputs: Tensor,
                    targets: Tensor,
-                   weight_dist: Dict[int, Dict[str, AbstractVariable]],
-                   get_layers_func: Callable[[nn.Module], List[nn.Module]],
                    loss_func_list: List[Callable],
-                   pmin: float = None, mean: bool = False) -> List[Tensor]:
+                   pmin: float = None) -> List[Tensor]:
     if pmin:
         # bound probability to be from [pmin to 1]
-        outputs = bounded_probabilistic_call(model, pmin, inputs, weight_dist, get_layers_func, mean)
+        outputs = bounded_call(model, inputs, pmin)
     else:
-        outputs = probabilistic_call(model, inputs, weight_dist, get_layers_func, mean)
+        outputs = model(inputs)
     losses = []
     for loss_func in loss_func_list:
         loss = loss_func(outputs, targets, pmin) if pmin else loss_func(outputs, targets)
@@ -53,19 +51,13 @@ def compute_avg_losses(model: nn.Module,
                        inputs: Tensor,
                        targets: Tensor,
                        mc_samples: int,
-                       weight_dist: Dict[int, Dict[str, AbstractVariable]],
-                       get_layers_func: Callable[[nn.Module], List[nn.Module]],
                        loss_func_list: List[Callable],
-                       pmin: float = None,
-                       mean: bool = False) -> Tensor:
+                       pmin: float = None) -> Tensor:
     losses_list = []
     for i in range(mc_samples):
         losses_list.append(compute_losses(model,
                                           inputs,
                                           targets,
-                                          weight_dist,
-                                          get_layers_func,
                                           loss_func_list,
-                                          pmin,
-                                          mean))
+                                          pmin))
     return torch.Tensor(losses_list).mean(dim=0)
