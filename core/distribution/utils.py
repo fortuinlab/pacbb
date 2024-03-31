@@ -35,14 +35,20 @@ def from_random(model: nn.Module,
                 requires_grad: bool = True) -> Dict[int, dict[str, AbstractVariable]]:
     distributions = {}
     for i, layer in enumerate(get_layers_func(model)):
-        t = torch.Tensor(layer.out_features, layer.in_features)
-        w = 1 / math.sqrt(layer.in_features)
+        t = torch.Tensor(*layer.weight.shape)
+        if hasattr(layer, 'in_features'):
+            in_features = layer.in_features
+        elif hasattr(layer, 'in_channels'):
+            in_features = layer.in_channels
+        else:
+            raise ValueError(f'Unsupported layer of type: {type(layer)}')
+        w = 1 / math.sqrt(in_features)
         weight_distribution = distribution(mu=truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w),
-                                           rho=torch.ones(layer.out_features, layer.in_features) * rho,
+                                           rho=torch.ones(*layer.weight.shape) * rho,
                                            mu_requires_grad=requires_grad,
                                            rho_requires_grad=requires_grad)
-        bias_distribution = distribution(mu=torch.zeros(layer.out_features),
-                                         rho=torch.ones(layer.out_features) * rho,
+        bias_distribution = distribution(mu=torch.zeros(*layer.bias.shape),
+                                         rho=torch.ones(*layer.bias.shape) * rho,
                                          mu_requires_grad=requires_grad,
                                          rho_requires_grad=requires_grad)
         distributions[i] = {'weight': weight_distribution, 'bias': bias_distribution}
