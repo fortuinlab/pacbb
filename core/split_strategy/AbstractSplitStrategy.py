@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from core.dataset.loader import AbstractLoader
+from scripts.utils.dataset.loader import AbstractLoader
 
 
 class AbstractSplitStrategy(ABC):

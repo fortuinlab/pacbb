@@ -6,7 +6,7 @@ import torch
 from torch.utils import data
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from core.dataset.loader import CIFAR10Loader, MNISTLoader
+from scripts.utils.dataset.loader import CIFAR10Loader, MNISTLoader
 from core.split_strategy import AbstractSplitStrategy
 
 

@@ -1,4 +1,4 @@
-from typing import List, Callable, Dict
+from typing import List, Callable
 
 import numpy as np
 import torch
@@ -8,7 +8,6 @@ import torch.nn as nn
 from tqdm import tqdm
 
 from core.model import bounded_call
-from core.distribution import AbstractVariable
 
 
 def rescale_loss(loss: Tensor, pmin: float) -> Tensor:
