@@ -62,8 +62,6 @@ config = {
 
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Device ", device)
     # Losses
     losses = {'nll_loss': nll_loss, 'scaled_nll_loss': scaled_nll_loss, '01_loss': zero_one_loss}
 
@@ -93,7 +91,6 @@ def main():
                         distribution=GaussianVariable,
                         requires_grad=True)
     dnn_to_probnn(model, prior, prior_prior)
-    model.to(device)
 
     # Training prior
     train_params = {
@@ -110,22 +107,18 @@ def main():
           objective=objective,
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params,
-          device=device)
+          parameters=train_params)
 
     # Model
     model = NNModel(28*28, 100, 10)
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
-                                requires_grad=False,
-                                device=device)
+                                requires_grad=False)
     posterior = from_copy(dist=prior,
                           distribution=GaussianVariable,
-                          requires_grad=True,
-                          device=device)
+                          requires_grad=True)
     dnn_to_probnn(model, posterior, posterior_prior)
-    model.to(device)
 
     #  Train posterior
     train_params = {
@@ -142,13 +135,11 @@ def main():
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params,
-          device=device)
+          parameters=train_params)
 
     # Compute average losses
     with torch.no_grad():
         for data, targets in strategy.bound_loader_1batch:
-            data, targets = data.to(device), targets.to(device)
             avg_losses = compute_avg_losses(model=model,
                                             inputs=data,
                                             targets=targets,

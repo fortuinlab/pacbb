@@ -4,14 +4,12 @@ import logging
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from itertools import chain
 from torch.utils.tensorboard import SummaryWriter
 
 from core.distribution import AbstractVariable
-from core.distribution.utils import get_params, compute_kl
+from core.distribution.utils import compute_kl
 from core.objective import AbstractObjective
 from core.model import bounded_call
-from core.layer.utils import get_torch_layers
 
 
 def train(model: nn.Module,
@@ -21,6 +19,7 @@ def train(model: nn.Module,
           train_loader: torch.utils.data.dataloader.DataLoader,
           val_loader: torch.utils.data.dataloader.DataLoader,
           parameters: Dict[str, Any],
+          device: torch.device,
         ):
     criterion = torch.nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(),
@@ -32,6 +31,7 @@ def train(model: nn.Module,
         torch.use_deterministic_algorithms(True)
     for epoch in range(parameters['epochs']):
         for i, (data, target) in tqdm(enumerate(train_loader)):
+            data, targets = data.to(device), target.to(device)
             optimizer.zero_grad()
             if 'pmin' in parameters:
                 output = bounded_call(model, data, parameters['pmin'])

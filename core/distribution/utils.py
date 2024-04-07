@@ -95,6 +95,7 @@ def from_zeros(model: nn.Module,
 def from_layered(model: torch.nn.Module,
                  attribute_mapping: dict[str, str],
                  distribution: Type[AbstractVariable],
+                 device: torch.device,
                  requires_grad: bool = True,
                  get_layers_func: Callable[[nn.Module], List[nn.Module]] = get_torch_layers,
                  ) -> Dict[int, dict[str, AbstractVariable]]:
@@ -102,23 +103,28 @@ def from_layered(model: torch.nn.Module,
                      weight_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_mu']).detach().clone(),
                      weight_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_rho']).detach().clone(),
                      bias_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_mu']).detach().clone(),
-                     bias_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_rho']).detach().clone())
+                     bias_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_rho']).detach().clone(),
+                     device=device)
 
 
 def from_copy(dist: Dict[int, dict[str, AbstractVariable]],
               distribution: Type[AbstractVariable],
-              requires_grad: bool = True) -> Dict[int, dict[str, AbstractVariable]]:
+              device: torch.device,
+              requires_grad: bool = True,
+              ) -> Dict[int, dict[str, AbstractVariable]]:
     distributions = {}
     for i, layer in dist.items():
         weight_distribution = distribution(mu=layer['weight'].mu.detach().clone(),
                                            rho=layer['weight'].rho.detach().clone(),
                                            mu_requires_grad=requires_grad,
-                                           rho_requires_grad=requires_grad)
+                                           rho_requires_grad=requires_grad,
+                                           device=device)
         if layer['bias'] is not None:
             bias_distribution = distribution(mu=layer['bias'].mu.detach().clone(),
                                              rho=layer['bias'].rho.detach().clone(),
                                              mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+                                             rho_requires_grad=requires_grad,
+                                             device=device)
         else:
             bias_distribution = None
         distributions[i] = {'weight': weight_distribution, 'bias': bias_distribution}

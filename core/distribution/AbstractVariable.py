@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Self
 
 import torch
 import torch.nn as nn
@@ -29,5 +28,5 @@ class AbstractVariable(nn.Module, KLDivergenceInterface, ABC):
         pass
 
     @abstractmethod
-    def compute_kl(self, other: Self) -> torch.Tensor:
+    def compute_kl(self, other: 'AbstractVariable') -> torch.Tensor:
         pass

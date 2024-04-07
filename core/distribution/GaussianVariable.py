@@ -10,7 +10,12 @@ class GaussianVariable(AbstractVariable):
     """
 
     def __init__(
-        self, mu: Tensor, rho: Tensor, mu_requires_grad: bool = False, rho_requires_grad: bool = False
+        self,
+            mu: Tensor,
+            rho: Tensor,
+            mu_requires_grad:
+            bool = False,
+            rho_requires_grad: bool = False,
     ):
         """
         Initialize the GaussianVariable.
@@ -30,8 +35,8 @@ class GaussianVariable(AbstractVariable):
         Returns:
             Tensor: Sampled values from the Gaussian distribution.
         """
-        # epsilon = torch.randn_like(self.sigma)
         epsilon = torch.randn(self.sigma.size())
+        epsilon = epsilon.to(self.mu.get_device())
         return self.mu + self.sigma * epsilon
 
     def compute_kl(self, other: "GaussianVariable") -> Tensor:
