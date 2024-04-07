@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 import torch.nn as nn
+from tqdm import tqdm
 
 from core.model import bounded_call
 from core.distribution import AbstractVariable
@@ -54,7 +55,7 @@ def compute_avg_losses(model: nn.Module,
                        loss_func_list: List[Callable],
                        pmin: float = None) -> Tensor:
     losses_list = []
-    for i in range(mc_samples):
+    for i in tqdm(range(mc_samples)):
         losses_list.append(compute_losses(model,
                                           inputs,
                                           targets,

@@ -22,6 +22,9 @@ class FaultySplitStrategy(PBPSplitStrategy):
     # Bounds evaluation
     bound_loader: data.dataloader.DataLoader = None
     bound_loader_1batch: data.dataloader.DataLoader = None
+    
+    def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+        super().__init__(prior_type, train_percent, val_percent, prior_percent, self_certified)
 
     def _split_not_learnt(
         self,
@@ -31,8 +34,8 @@ class FaultySplitStrategy(PBPSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
 
         train_size = len(train_dataset.data)
         test_size = len(test_dataset.data)
@@ -96,9 +99,9 @@ class FaultySplitStrategy(PBPSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
-        prior_percent = split_config["prior_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
+        prior_percent = self._prior_percent
 
         n = len(train_dataset.data) + len(test_dataset.data)
 
@@ -172,9 +175,9 @@ class FaultySplitStrategy(PBPSplitStrategy):
         loader_kwargs: Dict,
     ) -> None:
         batch_size = split_config["batch_size"]
-        training_percent = split_config["training_percent"]
-        val_percent = split_config["val_percent"]
-        prior_percent = split_config["prior_percent"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
+        prior_percent = self._prior_percent
 
         train_size = len(train_dataset.data)
         test_size = len(test_dataset.data)

@@ -4,15 +4,18 @@ import torch.nn as nn
 
 
 def get_layers(model: nn.Module, is_layer_func: Callable[[nn.Module], bool]) -> List[nn.Module]:
-    layers = []
+    # layers = []
     for layer in model.children():
+        if layer is not None:
+            yield from get_layers(layer, is_layer_func)
         if is_layer_func(layer):
-            layers.append(layer)
-    return layers
+            yield layer
+    # return layers
 
 
 def is_torch_layer(layer: nn.Module) -> bool:
-    return hasattr(layer, 'weight') and hasattr(layer, 'bias')
+    # return hasattr(layer, 'weight') and hasattr(layer, 'bias')
+    return isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d)
 
 
 def get_torch_layers(model: nn.Module) -> List[nn.Module]:

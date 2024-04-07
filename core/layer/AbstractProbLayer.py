@@ -9,6 +9,8 @@ class AbstractProbLayer(nn.Module, ABC):
     probabilistic_mode: bool
     _weight_dist: AbstractVariable
     _bias_dist: AbstractVariable
+    _prior_weight_dist: AbstractVariable
+    _prior_bias_dist: AbstractVariable
 
     def probabilistic(self, mode: bool = True):
         if not isinstance(mode, bool):
