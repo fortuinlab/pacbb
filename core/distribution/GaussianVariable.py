@@ -36,7 +36,7 @@ class GaussianVariable(AbstractVariable):
             Tensor: Sampled values from the Gaussian distribution.
         """
         epsilon = torch.randn(self.sigma.size())
-        epsilon = epsilon.to(self.mu.get_device())
+        epsilon = epsilon.to(self.mu.device)
         return self.mu + self.sigma * epsilon
 
     def compute_kl(self, other: "GaussianVariable") -> Tensor:

@@ -118,12 +118,10 @@ def main():
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
-                                requires_grad=False,
-                                device=device)
+                                requires_grad=False)
     posterior = from_copy(dist=prior,
                           distribution=GaussianVariable,
-                          requires_grad=True,
-                          device=device)
+                          requires_grad=True)
     dnn_to_probnn(model, posterior, posterior_prior)
     model.to(device)
 

@@ -6,15 +6,14 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
-from core.distribution import AbstractVariable
-from core.distribution.utils import compute_kl
+from core.distribution.utils import compute_kl, DistributionT
 from core.objective import AbstractObjective
 from core.model import bounded_call
 
 
 def train(model: nn.Module,
-          posterior: Dict[int, Dict[str, AbstractVariable]],
-          prior: Dict[int, Dict[str, AbstractVariable]],
+          posterior: DistributionT,
+          prior: DistributionT,
           objective: AbstractObjective,
           train_loader: torch.utils.data.dataloader.DataLoader,
           val_loader: torch.utils.data.dataloader.DataLoader,
@@ -28,7 +27,6 @@ def train(model: nn.Module,
 
     if 'seed' in parameters:
         torch.manual_seed(parameters['seed'])
-        torch.use_deterministic_algorithms(True)
     for epoch in range(parameters['epochs']):
         for i, (data, target) in tqdm(enumerate(train_loader)):
             data, targets = data.to(device), target.to(device)
