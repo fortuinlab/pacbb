@@ -10,7 +10,7 @@ from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_lo
 from core.risk import evaluate
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
-from core.objective import BBBObjective
+from core.objective import BBBObjective, FQuadObjective, FClassicObjective
 
 from scripts.utils.dataset.loader import MNISTLoader
 from scripts.utils.model import NNModel
@@ -103,7 +103,12 @@ def main():
         'seed': config['prior']['training']['seed'],
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
     }
-    objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
+    # objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
+    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                            delta=config['bound']['delta'])
+    objective = FClassicObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+                                  delta=config['bound']['delta'])
+
     train(model=model,
           posterior=prior,
           prior=prior_prior,
@@ -133,7 +138,12 @@ def main():
         'seed': config['posterior']['training']['seed'],
         'num_samples': strategy.posterior_loader.batch_size * len(strategy.posterior_loader),
     }
-    objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
+    # objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
+    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                            delta=config['bound']['delta'])
+    objective = FClassicObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+                                  delta=config['bound']['delta'])
+
     train(model=model,
           posterior=posterior,
           prior=posterior_prior,

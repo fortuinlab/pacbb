@@ -1,0 +1,18 @@
+import numpy as np
+import torch
+from torch import Tensor
+
+from core.objective import AbstractObjective
+
+
+class FQuadObjective(AbstractObjective):
+    def __init__(self, kl_penalty: float, delta: float):
+        self._kl_penalty = kl_penalty
+        self._delta = delta  # confidence value for the training objective
+
+    def calculate(self, loss: Tensor, kl: Tensor, num_samples: float) -> Tensor:
+        kl = kl * self._kl_penalty
+        kl_ratio = torch.div(kl + np.log((2 * np.sqrt(num_samples)) / self._delta), 2 * num_samples)
+        first_term = torch.sqrt(loss + kl_ratio)
+        second_term = torch.sqrt(kl_ratio)
+        return torch.pow(first_term + second_term, 2)
