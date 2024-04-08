@@ -9,7 +9,7 @@ from core.distribution import GaussianVariable
 from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
 from core.training import train
-from core.model import dnn_to_probnn
+from core.model import dnn_to_probnn, update_dist
 from core.objective import BBBObjective
 
 from scripts.utils.dataset.loader import MNISTLoader
@@ -110,7 +110,7 @@ def main():
           parameters=train_params)
 
     # Model
-    model = ConvNNModel()
+    # model = ConvNNModel()
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -118,7 +118,8 @@ def main():
     posterior = from_copy(dist=prior,
                           distribution=GaussianVariable,
                           requires_grad=True)
-    dnn_to_probnn(model, posterior, posterior_prior)
+    update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
+    # dnn_to_probnn(model, posterior, posterior_prior)
 
     #  Train posterior
     train_params = {

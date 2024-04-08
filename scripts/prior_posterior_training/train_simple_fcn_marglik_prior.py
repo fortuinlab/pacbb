@@ -1,10 +1,11 @@
 import torch
 import logging
 from torch.utils.tensorboard import SummaryWriter
+from laplace import marglik_training
 
 from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random
+from core.distribution.utils import from_copy, from_flat_rho
 from core.distribution import GaussianVariable
 from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
@@ -45,8 +46,9 @@ config = {
             'kl_penalty': 0.001,
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 10,
+            'epochs': 1,
             'seed': 1135,
+            'hessian_structure': 'full'  # diag
         }
     },
     'posterior': {
@@ -62,6 +64,8 @@ config = {
 
 
 def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Device ", device)
     # Losses
     losses = {'nll_loss': nll_loss, 'scaled_nll_loss': scaled_nll_loss, '01_loss': zero_one_loss}
 
@@ -81,41 +85,25 @@ def main():
     # Model
     model = NNModel(28*28, 100, 10)
 
-    torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_zeros(model=model,
-                             rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                             distribution=GaussianVariable,
-                             requires_grad=False)
-    prior = from_random(model=model,
-                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                        distribution=GaussianVariable,
-                        requires_grad=True)
-    dnn_to_probnn(model, prior, prior_prior)
-
     # Training prior
-    train_params = {
-        'lr': config['prior']['training']['lr'],
-        'momentum': config['prior']['training']['momentum'],
-        'epochs': config['prior']['training']['epochs'],
-        'seed': config['prior']['training']['seed'],
-        'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
-    }
-    objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
-    train(model=model,
-          posterior=prior,
-          prior=prior_prior,
-          objective=objective,
-          train_loader=strategy.prior_loader,
-          val_loader=strategy.val_loader,
-          parameters=train_params)
+    la, marglik_prior_model, _, _ = marglik_training(
+        model=model,
+        train_loader=strategy.prior_loader,
+        likelihood='classification',
+        hessian_structure=config['prior']['training']['hessian_structure'],
+        n_epochs=config['prior']['training']['epochs'],
+        optimizer_kwargs={'lr': config['prior']['training']['lr']},
+        prior_structure='layerwise',
+    )
 
     # Model
     model = NNModel(28*28, 100, 10)
 
-    posterior_prior = from_copy(dist=prior,
-                                distribution=GaussianVariable,
-                                requires_grad=False)
-    posterior = from_copy(dist=prior,
+    posterior_prior = from_flat_rho(model=marglik_prior_model,
+                                    rho=torch.log(torch.exp(torch.sqrt(la.posterior_variance)) - 1),
+                                    distribution=GaussianVariable,
+                                    requires_grad=False)
+    posterior = from_copy(dist=posterior_prior,
                           distribution=GaussianVariable,
                           requires_grad=True)
     dnn_to_probnn(model, posterior, posterior_prior)
@@ -135,7 +123,8 @@ def main():
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Compute average losses
     with torch.no_grad():

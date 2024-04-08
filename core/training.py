@@ -41,4 +41,3 @@ def train(model: nn.Module,
             objective_value.backward()
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
-    model.train()

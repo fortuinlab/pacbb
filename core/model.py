@@ -31,3 +31,22 @@ def dnn_to_probnn(model: nn.Module,
             layer.probabilistic = AbstractProbLayer.probabilistic.__get__(layer, nn.Module)
             layer.__class__ = LAYER_MAPPING[layer_type]
     model.probabilistic = AbstractProbLayer.probabilistic.__get__(model, nn.Module)
+
+
+def update_dist(model: nn.Module,
+                weight_dist: DistributionT = None,
+                prior_weight_dist: DistributionT = None,
+                get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers):
+    if weight_dist is not None:
+        for (name, distribution), (_, layer) in zip(weight_dist.items(), get_layers_func(model)):
+            layer_type = type(layer)
+            if layer_type in LAYER_MAPPING.values():
+                layer.__setattr__('_weight_dist', distribution['weight'])
+                layer.__setattr__('_bias_dist', distribution['bias'])
+
+    if prior_weight_dist is not None:
+        for (name, distribution), (_, layer) in zip(prior_weight_dist.items(), get_layers_func(model)):
+            layer_type = type(layer)
+            if layer_type in LAYER_MAPPING.values():
+                layer.__setattr__('_prior_weight_dist', distribution['weight'])
+                layer.__setattr__('_prior_bias_dist', distribution['bias'])

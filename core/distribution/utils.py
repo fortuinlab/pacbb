@@ -12,24 +12,31 @@ from core.distribution import AbstractVariable
 DistributionT = Dict[LayerNameT, Dict[str, AbstractVariable]]
 
 
-def from_flat(model: nn.Module,
-              attribute_mapping: dict[str, str],
-              rho: Union[Tensor, List[float]],
-              distribution: Type[AbstractVariable],
-              get_layers_func: Callable[[nn.Module], List[nn.Module]] = get_torch_layers,
-              ) -> dict[int, dict[str, AbstractVariable]]:
-
+def from_flat_rho(model: nn.Module,
+                  rho: Union[Tensor, List[float]],
+                  distribution: Type[AbstractVariable],
+                  requires_grad: bool = True,
+                  get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
+                  ) -> DistributionT:
     distributions = {}
     shift = 0
-    for i, layer in enumerate(get_layers_func(model)):
+    for name, layer in get_layers_func(model):
         weight_cutoff = shift + layer.out_features * layer.in_features
-        bias_cutoff = weight_cutoff + layer.out_features
-        weight_distribution = distribution(mu=layer.__getattr__(attribute_mapping['weight_mu']),
-                                           rho=rho[shift: weight_cutoff].reshape(layer.out_features, layer.in_features))
-        bias_distribution = distribution(mu=layer.__getattr__(attribute_mapping['bias_mu']),
-                                         rho=rho[weight_cutoff: bias_cutoff])
-        distributions[i] = {'weight': weight_distribution, 'bias': bias_distribution}
-        shift = bias_cutoff
+        weight_distribution = distribution(mu=layer.weight,
+                                           rho=rho[shift: weight_cutoff].reshape(layer.out_features, layer.in_features),
+                                           mu_requires_grad=requires_grad,
+                                           rho_requires_grad=requires_grad)
+        if layer.bias is not None:
+            bias_cutoff = weight_cutoff + layer.out_features
+            bias_distribution = distribution(mu=layer.bias,
+                                             rho=rho[weight_cutoff: bias_cutoff],
+                                             mu_requires_grad=requires_grad,
+                                             rho_requires_grad=requires_grad)
+            shift = bias_cutoff
+        else:
+            bias_distribution = None
+            shift = weight_cutoff
+        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
     return distributions
 
 
