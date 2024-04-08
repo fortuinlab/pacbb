@@ -49,7 +49,6 @@ class GaussianVariable(AbstractVariable):
         Returns:
             Tensor: The KL divergence between the two distributions.
         """
-        # TODO: 'GaussianVariable' or Self?
         b1 = torch.pow(self.sigma, 2)
         b0 = torch.pow(other.sigma, 2)
 
