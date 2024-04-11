@@ -10,7 +10,7 @@ from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_lo
 from core.risk import evaluate
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
-from core.objective import BBBObjective, FQuadObjective, FClassicObjective
+from core.objective import BBBObjective, FQuadObjective, FClassicObjective, MauerObjective
 
 from scripts.utils.dataset.loader import MNISTLoader
 from scripts.utils.model import NNModel
@@ -106,7 +106,7 @@ def main():
     # objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
     # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
     #                            delta=config['bound']['delta'])
-    objective = FClassicObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
                                   delta=config['bound']['delta'])
 
     train(model=model,
@@ -141,7 +141,7 @@ def main():
     # objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
     # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
     #                            delta=config['bound']['delta'])
-    objective = FClassicObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
                                   delta=config['bound']['delta'])
 
     train(model=model,
