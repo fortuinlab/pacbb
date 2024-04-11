@@ -3,10 +3,11 @@ conda_env
 # cache
 .idea
 __pycache__/
+.DS_Store
 # data
 data/
 outputs/
 # logs
 /logs/
 # other
-/.dev_scripts/
+/dev_scripts/
