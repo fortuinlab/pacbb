@@ -57,10 +57,13 @@ class ConvNNModel(nn.Module):
 
 
 class GoogLeNet(pl.LightningModule):
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=10, num_channels: int = 1):
         super().__init__()
         self.model = models.googlenet(weights="IMAGENET1K_V1", transform_input=False)
-        self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        if num_channels == 1:
+            self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        elif num_channels != 3:
+            raise ValueError(f'Invalid number of channels: {num_channels}')
         self.model.fc = nn.Linear(1024, num_classes)
         self.log_softmax = nn.LogSoftmax(dim=1)
 
