@@ -30,11 +30,16 @@ class NNModel(nn.Module):
 
 
 class ConvNNModel(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channels: int = 1, dataset='mnist'):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv1 = nn.Conv2d(in_channels, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.fc1 = nn.Linear(9216, 128)
+        if dataset == 'mnist':
+            self.fc1 = nn.Linear(9216, 128)
+        elif dataset == 'cifar10':
+            self.fc1 = nn.Linear(12544, 128)
+        else:
+            raise ValueError(f'Unknown dataset: {dataset}')
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
@@ -55,10 +60,21 @@ class GoogLeNet(pl.LightningModule):
     def __init__(self, num_classes=10):
         super().__init__()
         self.model = models.googlenet(weights="IMAGENET1K_V1", transform_input=False)
-        #         for param in self.resnet.parameters():
-        #             param.requires_grad = False
         self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.model.fc = nn.Linear(1024, num_classes)
+        self.log_softmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, x):
+        x = self.model(x)
+        x = self.log_softmax(x)
+        return x
+
+
+class ResNet(pl.LightningModule):
+    def __init__(self, num_classes: int = 10):
+        super().__init__()
+        self.model = models.resnet18(weights="IMAGENET1K_V1")
+        self.model.fc = nn.Linear(512, num_classes)
         self.log_softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x):

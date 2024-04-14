@@ -1,6 +1,5 @@
 import torch
 import logging
-from torch.utils.tensorboard import SummaryWriter
 
 from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
@@ -12,13 +11,13 @@ from core.training import train
 from core.model import dnn_to_probnn, update_dist
 from core.objective import BBBObjective
 
-from scripts.utils.dataset.loader import MNISTLoader
-from scripts.utils.model import GoogLeNet
+from scripts.utils.dataset.loader import CIFAR10Loader
+from scripts.utils.model import NNModel
 
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'mcsamples': 100,
+    'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
     'bound': {
@@ -45,7 +44,7 @@ config = {
             'kl_penalty': 0.001,
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 10,
+            'epochs': 25,
             'seed': 1135,
         }
     },
@@ -54,7 +53,7 @@ config = {
             'kl_penalty': 1.0,
             'lr': 0.001,
             'momentum': 0.9,
-            'epochs': 3,
+            'epochs': 1,
             'seed': 1135,
         }
     }
@@ -72,7 +71,7 @@ def main():
                     delta_test=config['bound']['delta_test'])
 
     # Data
-    loader = MNISTLoader('./data/mnist')
+    loader = CIFAR10Loader('./data/cifar')
     strategy = FaultySplitStrategy(prior_type=config['split_strategy']['prior_type'],
                                    train_percent=config['split_strategy']['train_percent'],
                                    val_percent=config['split_strategy']['val_percent'],
@@ -81,7 +80,7 @@ def main():
     strategy.split(loader, split_config=config['split_config'])
 
     # Model
-    model = GoogLeNet()
+    model = NNModel(32*32*3, 100, 10)
 
     torch.manual_seed(config['dist_init']['seed'])
     prior_prior = from_zeros(model=model,
@@ -93,6 +92,7 @@ def main():
                         distribution=GaussianVariable,
                         requires_grad=True)
     dnn_to_probnn(model, prior, prior_prior)
+    model.to(device)
 
     # Training prior
     train_params = {
@@ -103,16 +103,20 @@ def main():
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
     }
     objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
+    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                            delta=config['bound']['delta'])
+
     train(model=model,
           posterior=prior,
           prior=prior_prior,
           objective=objective,
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Model
-    # model = GoogLeNet()
+    # model = NNModel(28*28, 100, 10)
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -121,7 +125,7 @@ def main():
                           distribution=GaussianVariable,
                           requires_grad=True)
     update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
-    # dnn_to_probnn(model, posterior, posterior_prior)
+    model.to(device)
 
     #  Train posterior
     train_params = {
@@ -132,13 +136,19 @@ def main():
         'num_samples': strategy.posterior_loader.batch_size * len(strategy.posterior_loader),
     }
     objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
+    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                            delta=config['bound']['delta'])
+    # objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                               delta=config['bound']['delta'])
+
     train(model=model,
           posterior=posterior,
           prior=posterior_prior,
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Compute average losses
     avg_losses = compute_losses(model=model,

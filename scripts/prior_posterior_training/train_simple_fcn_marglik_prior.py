@@ -7,7 +7,7 @@ from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
 from core.distribution.utils import from_copy, from_flat_rho
 from core.distribution import GaussianVariable
-from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_loss
+from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
 from core.training import train
 from core.model import dnn_to_probnn
@@ -127,14 +127,12 @@ def main():
           device=device)
 
     # Compute average losses
-    with torch.no_grad():
-        for data, targets in strategy.bound_loader_1batch:
-            avg_losses = compute_avg_losses(model=model,
-                                            inputs=data,
-                                            targets=targets,
-                                            mc_samples=config['mcsamples'],
-                                            loss_func_list=list(losses.values()),
-                                            pmin=config['pmin'])
+    avg_losses = compute_losses(model=model,
+                                bound_loader=strategy.bound_loader,
+                                mc_samples=config['mcsamples'],
+                                loss_func_list=list(losses.values()),
+                                pmin=config['pmin'],
+                                device=device)
     avg_losses = dict(zip(losses.keys(), avg_losses))
     print('avg_losses', avg_losses)
 

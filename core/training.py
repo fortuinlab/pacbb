@@ -29,7 +29,7 @@ def train(model: nn.Module,
         torch.manual_seed(parameters['seed'])
     for epoch in range(parameters['epochs']):
         for i, (data, target) in tqdm(enumerate(train_loader)):
-            data, targets = data.to(device), target.to(device)
+            data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             if 'pmin' in parameters:
                 output = bounded_call(model, data, parameters['pmin'])

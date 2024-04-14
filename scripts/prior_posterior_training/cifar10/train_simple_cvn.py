@@ -1,6 +1,5 @@
 import torch
 import logging
-from torch.utils.tensorboard import SummaryWriter
 
 from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
@@ -12,8 +11,8 @@ from core.training import train
 from core.model import dnn_to_probnn, update_dist
 from core.objective import BBBObjective
 
-from scripts.utils.dataset.loader import MNISTLoader
-from scripts.utils.model import GoogLeNet
+from scripts.utils.dataset.loader import CIFAR10Loader
+from scripts.utils.model import ConvNNModel
 
 logging.basicConfig(level=logging.INFO)
 
@@ -54,7 +53,7 @@ config = {
             'kl_penalty': 1.0,
             'lr': 0.001,
             'momentum': 0.9,
-            'epochs': 3,
+            'epochs': 1,
             'seed': 1135,
         }
     }
@@ -72,7 +71,7 @@ def main():
                     delta_test=config['bound']['delta_test'])
 
     # Data
-    loader = MNISTLoader('./data/mnist')
+    loader = CIFAR10Loader('./data/cifar10')
     strategy = FaultySplitStrategy(prior_type=config['split_strategy']['prior_type'],
                                    train_percent=config['split_strategy']['train_percent'],
                                    val_percent=config['split_strategy']['val_percent'],
@@ -81,7 +80,7 @@ def main():
     strategy.split(loader, split_config=config['split_config'])
 
     # Model
-    model = GoogLeNet()
+    model = ConvNNModel(in_channels=3, dataset='cifar10')
 
     torch.manual_seed(config['dist_init']['seed'])
     prior_prior = from_zeros(model=model,
@@ -109,10 +108,11 @@ def main():
           objective=objective,
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Model
-    # model = GoogLeNet()
+    # model = ConvNNModel()
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -138,7 +138,8 @@ def main():
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Compute average losses
     avg_losses = compute_losses(model=model,

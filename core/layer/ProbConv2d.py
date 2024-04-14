@@ -16,4 +16,3 @@ class ProbConv2d(nn.Conv2d, AbstractProbLayer):
             else:
                 raise ValueError('Only training with probabilistic mode is allowed')
         return F.conv2d(input, sampled_weight, sampled_bias, self.stride, self.padding, self.dilation, self.groups)
-
