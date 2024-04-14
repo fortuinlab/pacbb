@@ -76,12 +76,8 @@ def from_random(model: nn.Module,
                 ) -> DistributionT:
     def get_truncated_normal_fill_tensor(layer: nn.Module) -> Tensor:
         t = torch.Tensor(*layer.weight.shape)
-        if hasattr(layer, 'in_features'):
-            in_features = layer.in_features
-        elif hasattr(layer, 'in_channels') and hasattr(layer, 'kernel_size'):
-            in_features = layer.in_channels * math.prod(layer.kernel_size)
-        elif hasattr(layer, 'num_features'):
-            in_features = layer.num_features
+        if hasattr(layer, 'weight') and layer.weight is not None:
+            in_features = math.prod(layer.weight.shape[1:])
         else:
             raise ValueError(f'Unsupported layer of type: {type(layer)}')
         w = 1 / math.sqrt(in_features)

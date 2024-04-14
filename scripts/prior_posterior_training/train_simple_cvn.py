@@ -109,7 +109,8 @@ def main():
           objective=objective,
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Model
     # model = ConvNNModel()
@@ -138,7 +139,8 @@ def main():
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Compute average losses
     avg_losses = compute_losses(model=model,
