@@ -1,6 +1,7 @@
 from abc import ABC
+from typing import Tuple
 
-from torch import nn
+from torch import nn, Tensor
 
 from core.distribution import AbstractVariable
 
@@ -20,3 +21,15 @@ class AbstractProbLayer(nn.Module, ABC):
         for module in self.children():
             if hasattr(module, 'probabilistic_mode') and hasattr(module, 'probabilistic'):
                 module.probabilistic(mode)
+
+    def sample_from_distribution(self) -> Tuple[Tensor, Tensor]:
+        if self.probabilistic_mode:
+            sampled_weight = self._weight_dist.sample()
+            sampled_bias = self._bias_dist.sample() if self._bias_dist else None
+        else:
+            if not self.training:
+                sampled_weight = self._weight_dist.mu
+                sampled_bias = self._bias_dist.mu if self._bias_dist else None
+            else:
+                raise ValueError('Only training with probabilistic mode is allowed')
+        return sampled_weight, sampled_bias
