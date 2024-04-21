@@ -3,7 +3,6 @@ from typing import List, Union, Type, Callable, Dict, Tuple, Iterator
 
 import torch
 from torch import nn, Tensor
-from torch.nn import Parameter
 
 from core.layer.utils import get_torch_layers, LayerNameT
 from core.distribution import AbstractVariable
@@ -51,10 +50,13 @@ def _from_any(model: nn.Module,
               ) -> DistributionT:
     distributions = {}
     for name, layer in get_layers_func(model):
-        weight_distribution = distribution(mu=weight_mu_fill_func(layer),
-                                           rho=weight_rho_fill_func(layer),
-                                           mu_requires_grad=requires_grad,
-                                           rho_requires_grad=requires_grad)
+        if layer.weight is not None:
+            weight_distribution = distribution(mu=weight_mu_fill_func(layer),
+                                               rho=weight_rho_fill_func(layer),
+                                               mu_requires_grad=requires_grad,
+                                               rho_requires_grad=requires_grad)
+        else:
+            weight_distribution = None
         if layer.bias is not None:
             bias_distribution = distribution(mu=bias_mu_fill_func(layer),
                                              rho=bias_rho_fill_func(layer),
@@ -74,10 +76,8 @@ def from_random(model: nn.Module,
                 ) -> DistributionT:
     def get_truncated_normal_fill_tensor(layer: nn.Module) -> Tensor:
         t = torch.Tensor(*layer.weight.shape)
-        if hasattr(layer, 'in_features'):
-            in_features = layer.in_features
-        elif hasattr(layer, 'in_channels') and hasattr(layer, 'kernel_size'):
-            in_features = layer.in_channels * math.prod(layer.kernel_size)
+        if hasattr(layer, 'weight') and layer.weight is not None:
+            in_features = math.prod(layer.weight.shape[1:])
         else:
             raise ValueError(f'Unsupported layer of type: {type(layer)}')
         w = 1 / math.sqrt(in_features)

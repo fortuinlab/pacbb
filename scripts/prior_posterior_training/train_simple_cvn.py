@@ -6,7 +6,7 @@ from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random
 from core.distribution import GaussianVariable
-from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_loss
+from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
@@ -62,6 +62,8 @@ config = {
 
 
 def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Device ", device)
     # Losses
     losses = {'nll_loss': nll_loss, 'scaled_nll_loss': scaled_nll_loss, '01_loss': zero_one_loss}
 
@@ -107,7 +109,8 @@ def main():
           objective=objective,
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Model
     # model = ConvNNModel()
@@ -136,17 +139,16 @@ def main():
           objective=objective,
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
-          parameters=train_params)
+          parameters=train_params,
+          device=device)
 
     # Compute average losses
-    with torch.no_grad():
-        for data, targets in strategy.bound_loader_1batch:
-            avg_losses = compute_avg_losses(model=model,
-                                            inputs=data,
-                                            targets=targets,
-                                            mc_samples=config['mcsamples'],
-                                            loss_func_list=list(losses.values()),
-                                            pmin=config['pmin'])
+    avg_losses = compute_losses(model=model,
+                                bound_loader=strategy.bound_loader,
+                                mc_samples=config['mcsamples'],
+                                loss_func_list=list(losses.values()),
+                                pmin=config['pmin'],
+                                device=device)
     avg_losses = dict(zip(losses.keys(), avg_losses))
     print('avg_losses', avg_losses)
 

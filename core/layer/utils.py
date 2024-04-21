@@ -2,6 +2,8 @@ from typing import List, Callable, Iterator, Tuple
 
 import torch.nn as nn
 
+from core.layer import supported_layers
+
 
 LayerNameT = Tuple[str, ...]
 
@@ -17,8 +19,7 @@ def get_layers(model: nn.Module,
 
 
 def is_torch_layer(layer: nn.Module) -> bool:
-    # return hasattr(layer, 'weight') and hasattr(layer, 'bias')
-    return isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d)
+    return any([isinstance(layer, torch_layer) for torch_layer in supported_layers.LAYER_MAPPING])
 
 
 def get_torch_layers(model: nn.Module) -> Iterator[Tuple[LayerNameT, nn.Module]]:

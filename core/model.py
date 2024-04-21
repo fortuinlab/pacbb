@@ -27,8 +27,6 @@ def dnn_to_probnn(model: nn.Module,
             layer.register_module('_weight_dist', weight_dist[name]['weight'])
             layer.register_module('_bias_dist', weight_dist[name]['bias'])
             layer.__setattr__('probabilistic_mode', True)
-            layer.forward = LAYER_MAPPING[layer_type].forward.__get__(layer, nn.Module)
-            layer.probabilistic = AbstractProbLayer.probabilistic.__get__(layer, nn.Module)
             layer.__class__ = LAYER_MAPPING[layer_type]
     model.probabilistic = AbstractProbLayer.probabilistic.__get__(model, nn.Module)
 

@@ -1,19 +1,22 @@
+import time
+
 import torch
 import logging
-from torch.utils.tensorboard import SummaryWriter
 
 from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random
 from core.distribution import GaussianVariable
-from core.loss import compute_avg_losses, scaled_nll_loss, zero_one_loss, nll_loss
+from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
-from core.objective import BBBObjective, FQuadObjective, FClassicObjective, MauerObjective
+from core.objective import BBBObjective
 
 from scripts.utils.dataset.loader import MNISTLoader
 from scripts.utils.model import NNModel
+
+import timeit
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,7 +48,7 @@ config = {
             'kl_penalty': 0.001,
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 10,
+            'epochs': 25,
             'seed': 1135,
         }
     },
@@ -103,11 +106,9 @@ def main():
         'seed': config['prior']['training']['seed'],
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
     }
-    # objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
+    objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
     # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
     #                            delta=config['bound']['delta'])
-    objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
-                                  delta=config['bound']['delta'])
 
     train(model=model,
           posterior=prior,
@@ -138,11 +139,11 @@ def main():
         'seed': config['posterior']['training']['seed'],
         'num_samples': strategy.posterior_loader.batch_size * len(strategy.posterior_loader),
     }
-    # objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
+    objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
     # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
     #                            delta=config['bound']['delta'])
-    objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
-                                  delta=config['bound']['delta'])
+    # objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
+    #                               delta=config['bound']['delta'])
 
     train(model=model,
           posterior=posterior,
@@ -154,18 +155,14 @@ def main():
           device=device)
 
     # Compute average losses
-    with torch.no_grad():
-        for data, targets in strategy.bound_loader_1batch:
-            data, targets = data.to(device), targets.to(device)
-            avg_losses = compute_avg_losses(model=model,
-                                            inputs=data,
-                                            targets=targets,
-                                            mc_samples=config['mcsamples'],
-                                            loss_func_list=list(losses.values()),
-                                            pmin=config['pmin'])
+    avg_losses = compute_losses(model=model,
+                                bound_loader=strategy.bound_loader,
+                                mc_samples=config['mcsamples'],
+                                loss_func_list=list(losses.values()),
+                                pmin=config['pmin'],
+                                device=device)
     avg_losses = dict(zip(losses.keys(), avg_losses))
     print('avg_losses', avg_losses)
-
     # Evaluate bound
     for key, loss in avg_losses.items():
         result = evaluate(bound, loss,
