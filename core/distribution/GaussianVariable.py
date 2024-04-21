@@ -1,5 +1,8 @@
+import numpy as np
+
 import torch
 from torch import Tensor
+from tqdm import tqdm
 
 from core.distribution import AbstractVariable
 
@@ -56,4 +59,27 @@ class GaussianVariable(AbstractVariable):
         term2 = torch.div(torch.pow(self.mu - other.mu, 2), b0)
         term3 = torch.div(b1, b0)
         kl_div = (torch.mul(term1 + term2 + term3 - 1, 0.5)).sum()
+        print(kl_div)
         return kl_div
+
+    def density(self, x: Tensor) -> Tensor:
+        denominator = self.sigma * np.sqrt(2 * np.pi)
+        nominator = torch.exp(-torch.div(torch.square(torch.div((x - self.mu), self.sigma)), 2))
+        return nominator / denominator
+
+    def compute_kl_numerical(self, other: "GaussianVariable") -> Tensor:
+        mc_samples = 100
+        epsilon = torch.finfo(torch.float32).tiny
+        epsilon = 1e-8
+        expectation = []
+        for i in tqdm(range(mc_samples)):
+            weight = self.sample()
+            x = self.density(weight)
+            y = other.density(weight)
+            mask = torch.logical_and(x >= epsilon, y >= epsilon)
+            ln_term = torch.log(x) - torch.log(y)
+            ln_term[~mask] = 0.0
+            # ln_term *= self.density(weight)
+            expectation.append(ln_term)
+        print(torch.stack(expectation).mean(dim=0).sum())
+        return torch.stack(expectation).mean(dim=0).sum()

@@ -5,7 +5,7 @@ import logging
 
 from core.bound import KLBound
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random
+from core.distribution.utils import from_copy, from_zeros, from_random, compute_kl_numerical, compute_kl
 from core.distribution import GaussianVariable
 from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
@@ -48,7 +48,7 @@ config = {
             'kl_penalty': 0.001,
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 5,
             'seed': 1135,
         }
     },
@@ -110,6 +110,11 @@ def main():
     # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
     #                            delta=config['bound']['delta'])
 
+    print('Res')
+    print(compute_kl(prior, prior_prior))
+    print('Res2')
+    print(compute_kl_numerical(prior, prior_prior))
+
     train(model=model,
           posterior=prior,
           prior=prior_prior,
@@ -118,6 +123,9 @@ def main():
           val_loader=strategy.val_loader,
           parameters=train_params,
           device=device)
+
+    print(compute_kl(prior, prior_prior))
+    print(compute_kl_numerical(prior, prior_prior))
 
     # Model
     # model = NNModel(28*28, 100, 10)

@@ -146,6 +146,16 @@ def compute_kl(dist1: DistributionT, dist2: DistributionT) -> Tensor:
     return torch.stack(kl_list).sum()
 
 
+def compute_kl_numerical(dist1: DistributionT, dist2: DistributionT) -> Tensor:
+    kl_list = []
+    for idx in dist1:
+        for key in dist1[idx]:
+            if dist1[idx][key] is not None and dist2[idx][key] is not None:
+                kl = dist1[idx][key].compute_kl_numerical(dist2[idx][key])
+                kl_list.append(kl)
+    return torch.stack(kl_list).sum()
+
+
 def compute_standard_normal_cdf(x: float) -> float:
     """
     Compute the standard normal cumulative distribution function.
