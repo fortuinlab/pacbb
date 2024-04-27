@@ -3,20 +3,18 @@ import time
 import torch
 import logging
 
-from core.bound import KLBound, McAllesterBound
 from core.split_strategy import FaultySplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random, compute_kl
 from core.distribution import GaussianVariable
-from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
-from core.risk import evaluate
+from core.loss import compute_losses
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
-from core.objective import BBBObjective
 
-from scripts.utils.dataset.loader import MNISTLoader
-from scripts.utils.model import NNModel
-
-import timeit
+from scripts.utils.factory import (LossFactory,
+                                   BoundFactory,
+                                   DataLoaderFactory,
+                                   ModelFactory,
+                                   ObjectiveFactory)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,6 +22,25 @@ config = {
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
+    'factory':
+        {
+            'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
+            'bounds': ['kl', 'mcallister'],
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
+                            },  # mnist or cifar10
+            'model': {'name': 'nn',
+                      'params': {'input_dim': 28*28,
+                                 'hidden_dim': 100,
+                                 'output_dim': 10}
+                      },
+            'prior_objective': {'name': 'bbb',
+                                'params': {'kl_penalty': 0.001}
+                                },
+            'posterior_objective': {'name': 'bbb',
+                                    'params': {'kl_penalty': 1.0}
+                                    },
+         },
     'bound': {
         'delta': 0.025,
         'delta_test': 0.01,
@@ -45,16 +62,14 @@ config = {
     },
     'prior': {
         'training': {
-            'kl_penalty': 0.001,
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 5,
             'seed': 1135,
         }
     },
     'posterior': {
         'training': {
-            'kl_penalty': 1.0,
             'lr': 0.001,
             'momentum': 0.9,
             'epochs': 1,
@@ -68,17 +83,24 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device ", device)
     # Losses
-    losses = {'nll_loss': nll_loss, 'scaled_nll_loss': scaled_nll_loss, '01_loss': zero_one_loss}
+    logging.info(f'Selected losses: {config["factory"]["losses"]}')
+    loss_factory = LossFactory()
+    losses = {loss_name: loss_factory.create(loss_name) for loss_name in config["factory"]["losses"]}
 
     # Bound
-    bounds = {'KL Bound': KLBound(bound_delta=config['bound']['delta'],
-                                  loss_delta=config['bound']['delta_test']),
-              'McAllester Bound': McAllesterBound(bound_delta=config['bound']['delta'],
-                                                  loss_delta=config['bound']['delta_test'])
-              }
+    logging.info(f'Selected bounds: {config["factory"]["bounds"]}')
+    bound_factory = BoundFactory()
+    bounds = {bound_name: bound_factory.create(bound_name,
+                                               bound_delta=config['bound']['delta'],
+                                               loss_delta=config['bound']['delta_test'])
+              for bound_name in config["factory"]["bounds"]}
 
     # Data
-    loader = MNISTLoader('./data/mnist')
+    logging.info(f'Selected data loader: {config["factory"]["data_loader"]}')
+    data_loader_factory = DataLoaderFactory()
+    loader = data_loader_factory.create(config["factory"]["data_loader"]["name"],
+                                        **config["factory"]["data_loader"]["params"])
+
     strategy = FaultySplitStrategy(prior_type=config['split_strategy']['prior_type'],
                                    train_percent=config['split_strategy']['train_percent'],
                                    val_percent=config['split_strategy']['val_percent'],
@@ -87,7 +109,9 @@ def main():
     strategy.split(loader, split_config=config['split_config'])
 
     # Model
-    model = NNModel(28*28, 100, 10)
+    logging.info(f'Select model: {config["factory"]["model"]["name"]}')
+    model_factory = ModelFactory()
+    model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
     prior_prior = from_zeros(model=model,
@@ -109,9 +133,10 @@ def main():
         'seed': config['prior']['training']['seed'],
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
     }
-    objective = BBBObjective(kl_penalty=config['prior']['training']['kl_penalty'])
-    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
-    #                            delta=config['bound']['delta'])
+    logging.info(f'Select objective: {config["factory"]["prior_objective"]["name"]}')
+    objective_factory = ObjectiveFactory()
+    objective = objective_factory.create(config["factory"]["prior_objective"]["name"],
+                                         **config["factory"]["prior_objective"]["params"])
 
     train(model=model,
           posterior=prior,
@@ -121,9 +146,6 @@ def main():
           val_loader=strategy.val_loader,
           parameters=train_params,
           device=device)
-
-    # Model
-    # model = NNModel(28*28, 100, 10)
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -142,11 +164,10 @@ def main():
         'seed': config['posterior']['training']['seed'],
         'num_samples': strategy.posterior_loader.batch_size * len(strategy.posterior_loader),
     }
-    objective = BBBObjective(kl_penalty=config['posterior']['training']['kl_penalty'])
-    # objective = FQuadObjective(kl_penalty=config['prior']['training']['kl_penalty'],
-    #                            delta=config['bound']['delta'])
-    # objective = MauerObjective(kl_penalty=config['prior']['training']['kl_penalty'],
-    #                               delta=config['bound']['delta'])
+
+    logging.info(f'Select objective: {config["factory"]["posterior_objective"]["name"]}')
+    objective = objective_factory.create(config["factory"]["posterior_objective"]["name"],
+                                         **config["factory"]["posterior_objective"]["params"])
 
     train(model=model,
           posterior=posterior,
