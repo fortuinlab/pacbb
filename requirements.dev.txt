@@ -4,3 +4,4 @@ isort==5.13.2
 pylint==3.0.3
 pytest==8.0.1
 wandb==0.16.6
+laplace-torch==0.1a2
