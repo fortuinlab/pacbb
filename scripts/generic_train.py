@@ -3,9 +3,8 @@ import torch
 import logging
 
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random, compute_kl
+from core.distribution.utils import from_copy, from_zeros, from_random
 from core.distribution import GaussianVariable
-from core.loss import compute_losses
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
 from core.risk import certify_risk
@@ -19,8 +18,8 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
-    'mcsamples': 1000,
+    'log_wandb': False,
+    'mcsamples': 10,
     'pmin': 1e-5,
     'sigma': 0.01,
     'factory':
@@ -30,10 +29,13 @@ config = {
             'data_loader': {'name': 'mnist',
                             'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
-            'model': {'name': 'nn',
-                      'params': {'input_dim': 28*28,
-                                 'hidden_dim': 100,
-                                 'output_dim': 10}
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 28*28,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #           },
+            'model': {'name': 'resnet',
+                      'params': {}
                       },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
@@ -65,7 +67,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 10,
             'seed': 1135,
         }
     },

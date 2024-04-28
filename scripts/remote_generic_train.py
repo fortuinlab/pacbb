@@ -30,7 +30,7 @@ config = {
             'data_loader': {'name': 'mnist',
                             'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
-            'model': {'name': 'googlenet',
+            'model': {'name': 'resnet',
                       'params': {}
                       },
             'prior_objective': {'name': 'bbb',
