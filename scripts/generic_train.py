@@ -1,5 +1,4 @@
-import time
-
+import wandb
 import torch
 import logging
 
@@ -9,6 +8,7 @@ from core.distribution import GaussianVariable
 from core.loss import compute_losses
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
+from core.risk import certify_risk
 
 from scripts.utils.factory import (LossFactory,
                                    BoundFactory,
@@ -19,6 +19,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
+    'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -64,7 +65,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 5,
+            'epochs': 25,
             'seed': 1135,
         }
     },
@@ -80,6 +81,8 @@ config = {
 
 
 def main():
+    if config['log_wandb']:
+        wandb.init(project='pbb-framework', config=config)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device ", device)
     # Losses
@@ -145,7 +148,21 @@ def main():
           train_loader=strategy.prior_loader,
           val_loader=strategy.val_loader,
           parameters=train_params,
-          device=device)
+          device=device,
+          wandb_params={'log_wandb': config["log_wandb"],
+                        'name_wandb': 'Prior Train'})
+
+    _ = certify_risk(model=model,
+                     bounds=bounds,
+                     losses=losses,
+                     posterior=prior,
+                     prior=prior_prior,
+                     bound_loader=strategy.bound_loader,
+                     num_samples_loss=config["mcsamples"],
+                     device=device,
+                     pmin=config["pmin"],
+                     wandb_params={'log_wandb': config["log_wandb"],
+                                   'name_wandb': 'Prior Bound'})
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -176,31 +193,21 @@ def main():
           train_loader=strategy.posterior_loader,
           val_loader=strategy.val_loader,
           parameters=train_params,
-          device=device)
+          device=device,
+          wandb_params={'log_wandb': config["log_wandb"],
+                        'name_wandb': 'Posterior Train'})
 
-    # Compute average losses
-    avg_losses = compute_losses(model=model,
-                                bound_loader=strategy.bound_loader,
-                                mc_samples=config['mcsamples'],
-                                loss_func_list=list(losses.values()),
-                                pmin=config['pmin'],
-                                device=device)
-    avg_losses = dict(zip(losses.keys(), avg_losses))
-    print('avg_losses', avg_losses)
-    # Evaluate bound
-    kl = compute_kl(dist1=posterior, dist2=prior)
-    num_samples_bound = strategy.bound_loader_1batch.batch_size * len(strategy.bound_loader_1batch)
-    for bound_name, bound in bounds.items():
-        print(f'Bound name: {bound_name}')
-        for loss_name, avg_loss in avg_losses.items():
-            risk, loss = bound.calculate(avg_loss=avg_loss,
-                                         kl=kl,
-                                         num_samples_bound=num_samples_bound,
-                                         num_samples_loss=config['mcsamples'])
-            print(f'Loss name: {loss_name}, '
-                  f'Risk: {risk.item():.5f}, '
-                  f'Loss: {loss.item():.5f}, '
-                  f'KL per sample bound: {kl / num_samples_bound:.5f}')
+    _ = certify_risk(model=model,
+                     bounds=bounds,
+                     losses=losses,
+                     posterior=posterior,
+                     prior=posterior_prior,
+                     bound_loader=strategy.bound_loader,
+                     num_samples_loss=config["mcsamples"],
+                     device=device,
+                     pmin=config["pmin"],
+                     wandb_params={'log_wandb': config["log_wandb"],
+                                   'name_wandb': 'Posterior Bound'})
 
 
 if __name__ == '__main__':

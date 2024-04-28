@@ -1,8 +1,9 @@
 from typing import Dict, Any
 import logging
+import wandb
 
 import torch
-import torch.nn as nn
+from torch import nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
@@ -19,6 +20,7 @@ def train(model: nn.Module,
           val_loader: torch.utils.data.dataloader.DataLoader,
           parameters: Dict[str, Any],
           device: torch.device,
+          wandb_params: Dict = None,
         ):
     criterion = torch.nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(),
@@ -41,3 +43,8 @@ def train(model: nn.Module,
             objective_value.backward()
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
+        if wandb_params is not None and wandb_params["log_wandb"]:
+            wandb.log({wandb_params["name_wandb"] + '/Epoch': epoch,
+                       wandb_params["name_wandb"] + '/Objective': objective_value,
+                       wandb_params["name_wandb"] + '/Loss': loss,
+                       wandb_params["name_wandb"] + '/KL-n': kl/parameters['num_samples']})
