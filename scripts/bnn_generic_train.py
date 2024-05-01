@@ -1,36 +1,39 @@
 import wandb
 import torch
 import logging
+from bayesian_torch.models.dnn_to_bnn import dnn_to_bnn
 
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random
+from core.distribution.utils import from_copy, from_layered
 from core.distribution import GaussianVariable
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
 from core.risk import certify_risk
+from core.layer.utils import get_bayesian_torch_layers
 
 from scripts.utils.factory import (LossFactory,
                                    BoundFactory,
                                    DataLoaderFactory,
                                    ModelFactory,
                                    ObjectiveFactory)
+from scripts.utils.training import train_bnn
 
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': False,
-    'mcsamples': 10,
+    'log_wandb': True,
+    'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
             'model': {'name': 'nn',
-                      'params': {'input_dim': 32*32*3,
+                      'params': {'input_dim': 28*28,
                                  'hidden_dim': 100,
                                  'output_dim': 10}
                       },
@@ -67,7 +70,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 10,
+            'epochs': 25,
             'seed': 1135,
         }
     },
@@ -119,15 +122,16 @@ def main():
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_zeros(model=model,
-                             rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                             distribution=GaussianVariable,
-                             requires_grad=False)
-    prior = from_random(model=model,
-                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                        distribution=GaussianVariable,
-                        requires_grad=True)
-    dnn_to_probnn(model, prior, prior_prior)
+    const_bnn_prior_parameters = {
+        "prior_mu": 0.0,
+        "prior_sigma": config['sigma'],
+        "posterior_mu_init": 0.0,
+        "posterior_rho_init": -2.0,
+        "type": "Reparameterization",  # Flipout or Reparameterization
+        "moped_enable": False,  # True to initialize mu/sigma from the pretrained dnn weights
+        "moped_delta": 0.5,
+    }
+    dnn_to_bnn(model, const_bnn_prior_parameters)
     model.to(device)
 
     # Training prior
@@ -143,36 +147,36 @@ def main():
     objective = objective_factory.create(config["factory"]["prior_objective"]["name"],
                                          **config["factory"]["prior_objective"]["params"])
 
-    train(model=model,
-          posterior=prior,
-          prior=prior_prior,
-          objective=objective,
-          train_loader=strategy.prior_loader,
-          val_loader=strategy.val_loader,
-          parameters=train_params,
-          device=device,
-          wandb_params={'log_wandb': config["log_wandb"],
-                        'name_wandb': 'Prior Train'})
+    train_bnn(model=model,
+              objective=objective,
+              train_loader=strategy.prior_loader,
+              val_loader=strategy.val_loader,
+              parameters=train_params,
+              device=device,
+              wandb_params={'log_wandb': config["log_wandb"],
+                            'name_wandb': 'Prior Train'})
 
-    _ = certify_risk(model=model,
-                     bounds=bounds,
-                     losses=losses,
-                     posterior=prior,
-                     prior=prior_prior,
-                     bound_loader=strategy.bound_loader,
-                     num_samples_loss=config["mcsamples"],
-                     device=device,
-                     pmin=config["pmin"],
-                     wandb_params={'log_wandb': config["log_wandb"],
-                                   'name_wandb': 'Prior Bound'})
+    attribute_mapping = {
+        'weight_mu': 'mu_weight',
+        'weight_rho': 'rho_weight',
+        'bias_mu': 'mu_bias',
+        'bias_rho': 'rho_bias',
+    }
 
-    posterior_prior = from_copy(dist=prior,
+    d = from_layered(model=model,
+                     attribute_mapping=attribute_mapping,
+                     distribution=GaussianVariable,
+                     get_layers_func=get_bayesian_torch_layers)
+
+    model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
+
+    posterior_prior = from_copy(dist=d,
                                 distribution=GaussianVariable,
                                 requires_grad=False)
-    posterior = from_copy(dist=prior,
+    posterior = from_copy(dist=d,
                           distribution=GaussianVariable,
                           requires_grad=True)
-    update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
+    dnn_to_probnn(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
     model.to(device)
 
     #  Train posterior

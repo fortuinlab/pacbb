@@ -27,11 +27,11 @@ config = {
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'mnist',
-                            'params': {'dataset_path': './data/mnist'}
+            'data_loader': {'name': 'cifar10',
+                            'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
             'model': {'name': 'nn',
-                      'params': {'input_dim': 28*28,
+                      'params': {'input_dim': 32*32*3,
                                  'hidden_dim': 100,
                                  'output_dim': 10}
                       },

@@ -130,6 +130,7 @@ def main():
         optimizer_kwargs={'lr': config['prior']['training']['lr']},
         prior_structure='layerwise',
         prior_prec_init=1/config['sigma'],
+        lr_hyp=config['prior']['training']['lr'],
     )
 
     posterior_prior = from_flat_rho(model=model,

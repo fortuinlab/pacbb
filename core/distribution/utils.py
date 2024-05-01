@@ -53,14 +53,16 @@ def _from_any(model: nn.Module,
               ) -> DistributionT:
     distributions = {}
     for name, layer in get_layers_func(model):
-        if layer.weight is not None:
+        # if layer.weight is not None:
+        if True:
             weight_distribution = distribution(mu=weight_mu_fill_func(layer),
                                                rho=weight_rho_fill_func(layer),
                                                mu_requires_grad=requires_grad,
                                                rho_requires_grad=requires_grad)
         else:
             weight_distribution = None
-        if layer.bias is not None:
+        # if layer.bias is not None:
+        if True:
             bias_distribution = distribution(mu=bias_mu_fill_func(layer),
                                              rho=bias_rho_fill_func(layer),
                                              mu_requires_grad=requires_grad,
