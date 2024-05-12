@@ -29,10 +29,8 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-            'model': {'name': 'nn',
-                      'params': {'input_dim': 32*32*3,
-                                 'hidden_dim': 100,
-                                 'output_dim': 10}
+            'model': {'name': 'resnet',
+                      'params': {'num_channels': 3}
                       },
             # 'model': {'name': 'resnet',
             #           'params': {}
@@ -67,7 +65,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 10,
+            'epochs': 1,
             'seed': 1135,
         }
     },

@@ -19,8 +19,8 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': False,
-    'mcsamples': 10,
+    'log_wandb': True,
+    'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
     'factory':
@@ -30,10 +30,13 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-            'model': {'name': 'nn',
-                      'params': {'input_dim': 32*32*3,
-                                 'hidden_dim': 100,
-                                 'output_dim': 10}
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 32*32*3,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #           },
+            'model': {'name': 'conv',
+                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
             # 'model': {'name': 'resnet',
             #           'params': {}
@@ -68,7 +71,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 3,
+            'epochs': 25,
             'seed': 1135,
         }
     },
@@ -130,6 +133,8 @@ def main():
         optimizer_kwargs={'lr': config['prior']['training']['lr']},
         prior_structure='layerwise',
         prior_prec_init=1/config['sigma'],
+        marglik_frequency=3,
+        n_epochs_burnin=5,
     )
 
     posterior_prior = from_flat_rho(model=model,
