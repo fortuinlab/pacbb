@@ -20,15 +20,20 @@ def from_flat_rho(model: nn.Module,
     distributions = {}
     shift = 0
     for name, layer in get_layers_func(model):
-        weight_cutoff = shift + layer.out_features * layer.in_features
-        weight_distribution = distribution(mu=layer.weight,
-                                           rho=rho[shift: weight_cutoff].reshape(layer.out_features, layer.in_features),
-                                           mu_requires_grad=requires_grad,
-                                           rho_requires_grad=requires_grad)
+        if layer.weight is not None:
+            # weight_cutoff = shift + layer.out_features * layer.in_features
+            weight_cutoff = shift + math.prod(layer.weight.shape)
+            weight_distribution = distribution(mu=layer.weight,
+                                               rho=rho[shift: weight_cutoff].reshape(*layer.weight.shape),
+                                               mu_requires_grad=requires_grad,
+                                               rho_requires_grad=requires_grad)
+        else:
+            weight_distribution = None
         if layer.bias is not None:
-            bias_cutoff = weight_cutoff + layer.out_features
+            # bias_cutoff = weight_cutoff + layer.out_features
+            bias_cutoff = weight_cutoff + math.prod(layer.bias.shape)
             bias_distribution = distribution(mu=layer.bias,
-                                             rho=rho[weight_cutoff: bias_cutoff],
+                                             rho=rho[weight_cutoff: bias_cutoff].reshape(*layer.bias.shape),
                                              mu_requires_grad=requires_grad,
                                              rho_requires_grad=requires_grad)
             shift = bias_cutoff

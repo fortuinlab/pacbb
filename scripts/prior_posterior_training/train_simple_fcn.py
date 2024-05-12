@@ -3,9 +3,9 @@ import time
 import torch
 import logging
 
-from core.bound import KLBound
+from core.bound import KLBound, McAllesterBound
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random
+from core.distribution.utils import from_copy, from_zeros, from_random, compute_kl
 from core.distribution import GaussianVariable
 from core.loss import compute_losses, scaled_nll_loss, zero_one_loss, nll_loss
 from core.risk import evaluate
@@ -71,8 +71,11 @@ def main():
     losses = {'nll_loss': nll_loss, 'scaled_nll_loss': scaled_nll_loss, '01_loss': zero_one_loss}
 
     # Bound
-    bound = KLBound(delta=config['bound']['delta'],
-                    delta_test=config['bound']['delta_test'])
+    bounds = {'KL Bound': KLBound(bound_delta=config['bound']['delta'],
+                                  loss_delta=config['bound']['delta_test']),
+              'McAllester Bound': McAllesterBound(bound_delta=config['bound']['delta'],
+                                                  loss_delta=config['bound']['delta_test'])
+              }
 
     # Data
     loader = MNISTLoader('./data/mnist')
@@ -164,14 +167,19 @@ def main():
     avg_losses = dict(zip(losses.keys(), avg_losses))
     print('avg_losses', avg_losses)
     # Evaluate bound
-    for key, loss in avg_losses.items():
-        result = evaluate(bound, loss,
-                          posterior=posterior,
-                          prior=posterior_prior,
-                          mc_samples=config['mcsamples'],
-                          bound_samples=strategy.bound_loader_1batch.batch_size * len(strategy.bound_loader_1batch))
-
-        print(key, result)
+    kl = compute_kl(dist1=posterior, dist2=prior)
+    num_samples_bound = strategy.bound_loader_1batch.batch_size * len(strategy.bound_loader_1batch)
+    for bound_name, bound in bounds.items():
+        print(f'Bound name: {bound_name}')
+        for loss_name, avg_loss in avg_losses.items():
+            risk, loss = bound.calculate(avg_loss=avg_loss,
+                                         kl=kl,
+                                         num_samples_bound=num_samples_bound,
+                                         num_samples_loss=config['mcsamples'])
+            print(f'Loss name: {loss_name}, '
+                  f'Risk: {risk.item():.5f}, '
+                  f'Loss: {loss.item():.5f}, '
+                  f'KL per sample bound: {kl / num_samples_bound:.5f}')
 
 
 if __name__ == '__main__':

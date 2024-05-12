@@ -1,27 +1,25 @@
 from typing import Dict, Any
 import logging
 import wandb
+from bayesian_torch.models.dnn_to_bnn import get_kl_loss
 
 import torch
 from torch import nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
-from core.distribution.utils import compute_kl, DistributionT
 from core.objective import AbstractObjective
 from core.model import bounded_call
 
 
-def train(model: nn.Module,
-          posterior: DistributionT,
-          prior: DistributionT,
-          objective: AbstractObjective,
-          train_loader: torch.utils.data.dataloader.DataLoader,
-          val_loader: torch.utils.data.dataloader.DataLoader,
-          parameters: Dict[str, Any],
-          device: torch.device,
-          wandb_params: Dict = None,
-        ):
+def train_bnn(model: nn.Module,
+              objective: AbstractObjective,
+              train_loader: torch.utils.data.dataloader.DataLoader,
+              val_loader: torch.utils.data.dataloader.DataLoader,
+              parameters: Dict[str, Any],
+              device: torch.device,
+              wandb_params: Dict = None,
+            ):
     criterion = torch.nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(),
                                 lr=parameters['lr'],
@@ -37,7 +35,7 @@ def train(model: nn.Module,
                 output = bounded_call(model, data, parameters['pmin'])
             else:
                 output = model(data)
-            kl = compute_kl(posterior, prior)
+            kl = get_kl_loss(model)
             loss = criterion(output, target)
             objective_value = objective.calculate(loss, kl, parameters['num_samples'])
             objective_value.backward()

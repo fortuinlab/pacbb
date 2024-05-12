@@ -9,5 +9,6 @@ data/
 outputs/
 # logs
 /logs/
+/wandb/
 # other
 /dev_scripts/

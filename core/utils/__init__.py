@@ -1,1 +1,1 @@
-from core.utils.KLDivergenceInterface import KLDivergenceInterface
+from core.utils.kl import KLDivergenceInterface
