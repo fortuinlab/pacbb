@@ -1,6 +1,7 @@
 import math
 from typing import List, Union, Type, Callable, Dict, Tuple, Iterator
 
+import ivon
 import torch
 from torch import nn, Tensor
 
@@ -9,6 +10,47 @@ from core.distribution import AbstractVariable
 
 
 DistributionT = Dict[LayerNameT, Dict[str, AbstractVariable]]
+
+
+def from_ivon(model: nn.Module,
+              optimizer: ivon.IVON,
+              distribution: Type[AbstractVariable],
+              requires_grad: bool = True,
+              get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
+              ) -> DistributionT:
+    distributions = {}
+    i = 0
+    shift = 0
+    weights = optimizer.param_groups[0]['params']
+    hessians = optimizer.param_groups[0]['hess']
+    weight_decay = optimizer.param_groups[0]["weight_decay"]
+    ess = optimizer.param_groups[0]["ess"]
+    sigma = 1 / (ess * (hessians + weight_decay)).sqrt()
+    rho = torch.log(torch.exp(sigma) - 1)
+
+    for name, layer in get_layers_func(model):
+        if layer.weight is not None:
+            weight_cutoff = shift + math.prod(layer.weight.shape)
+            weight_distribution = distribution(mu=weights[i],
+                                               rho=rho[shift: weight_cutoff].reshape(*layer.weight.shape),
+                                               mu_requires_grad=requires_grad,
+                                               rho_requires_grad=requires_grad)
+            shift = weight_cutoff
+            i+=1
+        else:
+            weight_distribution = None
+        if layer.bias is not None:
+            bias_cutoff = shift + math.prod(layer.bias.shape)
+            bias_distribution = distribution(mu=weights[i],
+                                             rho=rho[shift: bias_cutoff].reshape(*layer.bias.shape),
+                                             mu_requires_grad=requires_grad,
+                                             rho_requires_grad=requires_grad)
+            shift = bias_cutoff
+            i+=1
+        else:
+            bias_distribution = None
+        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+    return distributions
 
 
 def from_flat_rho(model: nn.Module,
