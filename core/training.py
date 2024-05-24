@@ -63,6 +63,7 @@ def train_ivon(model: nn.Module,
         weight_decay = s0 / parameters['num_samples']
     else:
         weight_decay = 1e-6
+    logging.info(f"Weight decay: {weight_decay}")
 
     criterion = torch.nn.NLLLoss()
     optimizer = ivon.IVON(model.parameters(), lr=parameters['lr'], ess=parameters['num_samples'],
@@ -81,4 +82,7 @@ def train_ivon(model: nn.Module,
                     loss.backward()
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Loss: {loss}")
+        if wandb_params is not None and wandb_params["log_wandb"]:
+            wandb.log({wandb_params["name_wandb"] + '/Epoch': epoch,
+                       wandb_params["name_wandb"] + '/Loss': loss})
     return optimizer
