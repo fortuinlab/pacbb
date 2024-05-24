@@ -58,9 +58,15 @@ def train_ivon(model: nn.Module,
                device: torch.device,
                wandb_params: Dict = None,
         ) -> ivon.IVON:
+    if 'sigma' in parameters:
+        s0 = 1 / parameters['sigma']
+        weight_decay = s0 / parameters['num_samples']
+    else:
+        weight_decay = 1e-6
+
     criterion = torch.nn.NLLLoss()
     optimizer = ivon.IVON(model.parameters(), lr=parameters['lr'], ess=parameters['num_samples'],
-                          weight_decay=1e-6)
+                          weight_decay=weight_decay)
 
     if 'seed' in parameters:
         torch.manual_seed(parameters['seed'])
