@@ -18,7 +18,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': False,
+    'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -29,12 +29,20 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-            'model': {'name': 'resnet',
-                      'params': {'num_channels': 3}
-                      },
+            # 'model': {'name': 'resnet',
+            #           'params': {'num_channels': 3}
+            #           },
             # 'model': {'name': 'resnet',
             #           'params': {}
             #           },
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 32*32*3,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #          },
+            'model': {'name': 'conv',
+                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
+                      },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
@@ -65,7 +73,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 1,
+            'epochs': 100,
             'seed': 1135,
         }
     },

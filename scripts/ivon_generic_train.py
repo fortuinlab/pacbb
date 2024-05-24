@@ -26,23 +26,14 @@ config = {
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
-            # 'model': {'name': 'googlenet',
-            #           'params': {'num_channels': 3}
-            #           },
             'model': {'name': 'nn',
-                      'params': {'input_dim': 32*32*3,
+                      'params': {'input_dim': 28*28,
                                  'hidden_dim': 100,
                                  'output_dim': 10}
-                     },
-            # 'model': {'name': 'conv',
-            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
-            #           },
-            # 'model': {'name': 'resnet',
-            #           'params': {'num_channels': 3}
-            #           },
+                      },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
@@ -71,7 +62,7 @@ config = {
     },
     'prior': {
         'training': {
-            'lr': 0.1,
+            'lr': 0.5,
             'momentum': 0.95,
             'epochs': 25,
             'seed': 1135,
