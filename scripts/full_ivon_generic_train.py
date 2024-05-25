@@ -3,9 +3,9 @@ import torch
 import logging
 
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_zeros, from_random
+from core.distribution.utils import from_copy, from_ivon
 from core.distribution import GaussianVariable
-from core.training import train
+from core.training import train, train_ivon
 from core.model import dnn_to_probnn, update_dist
 from core.risk import certify_risk
 
@@ -68,10 +68,11 @@ config = {
     },
     'prior': {
         'training': {
-            'lr': 0.001,
+            'lr': 0.5,
             'momentum': 0.95,
-            'epochs': 100,
+            'epochs': 25,
             'seed': 1135,
+            'train_samples': 10,
         }
     },
     'posterior': {
@@ -122,15 +123,6 @@ def main():
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_zeros(model=model,
-                             rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                             distribution=GaussianVariable,
-                             requires_grad=False)
-    prior = from_random(model=model,
-                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                        distribution=GaussianVariable,
-                        requires_grad=True)
-    dnn_to_probnn(model, prior, prior_prior)
     model.to(device)
 
     # Training prior
@@ -140,42 +132,26 @@ def main():
         'epochs': config['prior']['training']['epochs'],
         'seed': config['prior']['training']['seed'],
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
+        'train_samples': config['prior']['training']['train_samples'],
+        'sigma': config['sigma']
     }
-    logging.info(f'Select objective: {config["factory"]["prior_objective"]["name"]}')
-    objective_factory = ObjectiveFactory()
-    objective = objective_factory.create(config["factory"]["prior_objective"]["name"],
-                                         **config["factory"]["prior_objective"]["params"])
 
-    train(model=model,
-          posterior=prior,
-          prior=prior_prior,
-          objective=objective,
-          train_loader=strategy.prior_loader,
-          val_loader=strategy.val_loader,
-          parameters=train_params,
-          device=device,
-          wandb_params={'log_wandb': config["log_wandb"],
-                        'name_wandb': 'Prior Train'})
+    ivon = train_ivon(model=model,
+                      train_loader=strategy.prior_loader,
+                      val_loader=strategy.val_loader,
+                      parameters=train_params,
+                      device=device,
+                      wandb_params={'log_wandb': config["log_wandb"],
+                                    'name_wandb': 'Prior Train'})
 
-    _ = certify_risk(model=model,
-                     bounds=bounds,
-                     losses=losses,
-                     posterior=prior,
-                     prior=prior_prior,
-                     bound_loader=strategy.bound_loader,
-                     num_samples_loss=config["mcsamples"],
-                     device=device,
-                     pmin=config["pmin"],
-                     wandb_params={'log_wandb': config["log_wandb"],
-                                   'name_wandb': 'Prior Bound'})
-
-    posterior_prior = from_copy(dist=prior,
+    posterior_prior = from_ivon(model,
+                                optimizer=ivon,
                                 distribution=GaussianVariable,
                                 requires_grad=False)
-    posterior = from_copy(dist=prior,
+    posterior = from_copy(dist=posterior_prior,
                           distribution=GaussianVariable,
                           requires_grad=True)
-    update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
+    dnn_to_probnn(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
     model.to(device)
 
     #  Train posterior
@@ -188,6 +164,7 @@ def main():
     }
 
     logging.info(f'Select objective: {config["factory"]["posterior_objective"]["name"]}')
+    objective_factory = ObjectiveFactory()
     objective = objective_factory.create(config["factory"]["posterior_objective"]["name"],
                                          **config["factory"]["posterior_objective"]["params"])
 
