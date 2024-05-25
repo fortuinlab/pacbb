@@ -27,6 +27,7 @@ config = {
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
+            'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
             'bounds': ['kl', 'mcallister'],
             # 'data_loader': {'name': 'cifar10',
             #                 'params': {'dataset_path': './data/cifar10'}
@@ -179,7 +180,7 @@ def main():
                           device=device,
                           pmin=config["pmin"],
                           wandb_params={'log_wandb': config["log_wandb"],
-                                        'name_wandb': 'Prior Metrics'})
+                                        'name_wandb': 'Prior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
@@ -233,7 +234,7 @@ def main():
                          device=device,
                          pmin=config["pmin"],
                          wandb_params={'log_wandb': config["log_wandb"],
-                                       'name_wandb': 'Posterior Metrics'})
+                                       'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
