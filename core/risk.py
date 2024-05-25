@@ -29,7 +29,8 @@ def certify_risk(model: nn.Module,
                                 pmin=pmin,
                                 device=device)
     avg_losses = dict(zip(losses.keys(), avg_losses))
-    logging.info('Average losses:', avg_losses)
+    logging.info('Average losses:')
+    logging.info(avg_losses)
 
     # Evaluate bound
     kl = compute_kl(dist1=posterior, dist2=prior)
