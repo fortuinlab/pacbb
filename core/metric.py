@@ -27,5 +27,5 @@ def evaluate_metrics(model: nn.Module,
     logging.info(avg_metrics)
     if wandb_params is not None and wandb_params['log_wandb']:
         for name, metric in avg_metrics.items():
-            wandb.log({f'{wandb_params["name_wandb"]}/{name}/': metric.item()})
+            wandb.log({f'{wandb_params["name_wandb"]}/{name}': metric.item()})
     return avg_metrics
