@@ -56,6 +56,68 @@ class ConvNNModel(nn.Module):
         return x
 
 
+class ConvNN15Model(nn.Module):
+    def __init__(self, in_channels: int = 1, dataset='mnist'):
+        super().__init__()
+        if dataset != 'cifar10':
+            raise ValueError(f'Unknown dataset: {dataset}')
+
+        self.conv1 = nn.Conv2d(in_channels, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, 3, padding=1)
+        self.conv4 = nn.Conv2d(128, 128, 3, padding=1)
+        self.conv5 = nn.Conv2d(128, 256, 3, padding=1)
+        self.conv6 = nn.Conv2d(256, 256, 3, padding=1)
+        self.conv7 = nn.Conv2d(256, 256, 3, padding=1)
+        self.conv8 = nn.Conv2d(256, 256, 3, padding=1)
+        self.conv9 = nn.Conv2d(256, 512, 3, padding=1)
+        self.conv10 = nn.Conv2d(512, 512, 3, padding=1)
+        self.conv11 = nn.Conv2d(512, 512, 3, padding=1)
+        self.conv12 = nn.Conv2d(512, 512, 3, padding=1)
+        self.fc1 = nn.Linear(2048, 1024)
+        self.fc2 = nn.Linear(1024, 512)
+        self.fc3 = nn.Linear(512, 10)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = self.conv5(x)
+        x = F.relu(x)
+        x = self.conv6(x)
+        x = F.relu(x)
+        x = self.conv7(x)
+        x = F.relu(x)
+        x = self.conv8(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = self.conv9(x)
+        x = F.relu(x)
+        x = self.conv10(x)
+        x = F.relu(x)
+        self.conv11(x)
+        x = F.relu(x)
+        self.conv12(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        # x = x.view(x.size(0), -1)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        x = F.log_softmax(x, dim=1)
+        return x
+
+
 class GoogLeNet(pl.LightningModule):
     def __init__(self, num_classes=10, num_channels: int = 1):
         super().__init__()

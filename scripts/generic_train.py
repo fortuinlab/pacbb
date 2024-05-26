@@ -20,8 +20,8 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
-    'mcsamples': 100,
+    'log_wandb': False,
+    'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
     'factory':
@@ -29,9 +29,9 @@ config = {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
             'bounds': ['kl', 'mcallister'],
-            # 'data_loader': {'name': 'cifar10',
-            #                 'params': {'dataset_path': './data/cifar10'}
-            #                 },
+            'data_loader': {'name': 'cifar10',
+                            'params': {'dataset_path': './data/cifar10'}
+                            },
             # 'model': {'name': 'resnet',
             #           'params': {'num_channels': 3}
             #           },
@@ -43,18 +43,21 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
             #           },
-            'model': {'name': 'nn',
-                      'params': {'input_dim': 28*28,
-                                 'hidden_dim': 100,
-                                 'output_dim': 10}
-                     },
-            'data_loader': {'name': 'mnist',
-                            'params': {'dataset_path': './data/mnist'}
-                            },
-            'prior_objective': {'name': 'bbb',
+            'model': {'name': 'conv15',
+                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
+                      },
+            # 'data_loader': {'name': 'mnist',
+            #                 'params': {'dataset_path': './data/mnist'}
+            #                 },
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 28*28,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #          },
+            'prior_objective': {'name': 'fclassic',
                                 'params': {'kl_penalty': 0.001}
                                 },
-            'posterior_objective': {'name': 'bbb',
+            'posterior_objective': {'name': 'fclassic',
                                     'params': {'kl_penalty': 1.0}
                                     },
          },
@@ -74,8 +77,8 @@ config = {
         'prior_type': 'learnt',
         'train_percent': 1.,
         'val_percent': 0.05,
-        'prior_percent': .5,
-        'self_certified': False,
+        'prior_percent': .7,
+        'self_certified': True,
     },
     'prior': {
         'training': {
@@ -173,14 +176,15 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Prior Train'})
 
-    _  = evaluate_metrics(model=model,
-                          metrics=metrics,
-                          test_loader=strategy.test_loader,
-                          num_samples_metric=config["mcsamples"],
-                          device=device,
-                          pmin=config["pmin"],
-                          wandb_params={'log_wandb': config["log_wandb"],
-                                        'name_wandb': 'Prior Evaluation'})
+    if strategy.test_loader is not None:
+        _  = evaluate_metrics(model=model,
+                              metrics=metrics,
+                              test_loader=strategy.test_loader,
+                              num_samples_metric=config["mcsamples"],
+                              device=device,
+                              pmin=config["pmin"],
+                              wandb_params={'log_wandb': config["log_wandb"],
+                                            'name_wandb': 'Prior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
@@ -227,14 +231,15 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
-    _ = evaluate_metrics(model=model,
-                         metrics=metrics,
-                         test_loader=strategy.test_loader,
-                         num_samples_metric=config["mcsamples"],
-                         device=device,
-                         pmin=config["pmin"],
-                         wandb_params={'log_wandb': config["log_wandb"],
-                                       'name_wandb': 'Posterior Evaluation'})
+    if strategy.test_loader is not None:
+        _ = evaluate_metrics(model=model,
+                             metrics=metrics,
+                             test_loader=strategy.test_loader,
+                             num_samples_metric=config["mcsamples"],
+                             device=device,
+                             pmin=config["pmin"],
+                             wandb_params={'log_wandb': config["log_wandb"],
+                                           'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
