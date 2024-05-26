@@ -32,22 +32,22 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-            #             'model': {'name': 'resnet',
-            #                       'params': {'num_channels': 3}
-            #                       },
+                        'model': {'name': 'resnet',
+                                  'params': {'num_channels': 3}
+                                  },
             # 'model': {'name': 'nn',
             #           'params': {'input_dim': 32*32*3,
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #          },
-            'model': {'name': 'conv',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
             'posterior_objective': {'name': 'bbb',
-                                    'params': {'kl_penalty': 1000.0}
+                                    'params': {'kl_penalty': 100.0}
                                     },
         },
     'bound': {
@@ -71,9 +71,9 @@ config = {
     },
     'prior': {
         'training': {
-            'lr': 0.5,
+            'lr': 0.1,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 100,
             'seed': 1135,
             'train_samples': 10,
         }
@@ -141,6 +141,7 @@ def main():
         'seed': config['prior']['training']['seed'],
         'num_samples': strategy.prior_loader.batch_size * len(strategy.prior_loader),
         'train_samples': config['prior']['training']['train_samples'],
+        'sigma': config['sigma'],
     }
 
     ivon = train_ivon(model=model,
@@ -149,7 +150,7 @@ def main():
                       parameters=train_params,
                       device=device,
                       wandb_params={'log_wandb': config["log_wandb"],
-                                    'name_wandb': 'Prior Evaluation'})
+                                    'name_wandb': 'Prior Train'})
 
     posterior_prior = from_ivon(model,
                                 optimizer=ivon,
