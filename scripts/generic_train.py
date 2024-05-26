@@ -55,10 +55,12 @@ config = {
             #                      'output_dim': 10}
             #          },
             'prior_objective': {'name': 'fclassic',
-                                'params': {'kl_penalty': 0.001}
+                                'params': {'kl_penalty': 0.001,
+                                           'delta': 0.025}
                                 },
             'posterior_objective': {'name': 'fclassic',
-                                    'params': {'kl_penalty': 1.0}
+                                    'params': {'kl_penalty': 1.0,
+                                               'delta': 0.025}
                                     },
          },
     'bound': {
