@@ -5,8 +5,8 @@ import logging
 from core.split_strategy import PBPSplitStrategy
 from core.distribution.utils import from_copy, from_ivon
 from core.distribution import GaussianVariable
-from core.training import train, train_ivon
-from core.model import dnn_to_probnn, update_dist
+from core.training import train
+from core.model import dnn_to_probnn
 from core.risk import certify_risk
 from core.metric import evaluate_metrics
 
@@ -16,11 +16,12 @@ from scripts.utils.factory import (LossFactory,
                                    DataLoaderFactory,
                                    ModelFactory,
                                    ObjectiveFactory)
+from scripts.utils.training import train_ivon
 
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -32,17 +33,17 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-                        'model': {'name': 'resnet',
-                                  'params': {'num_channels': 3}
-                                  },
+            # 'model': {'name': 'resnet',
+            #           'params': {'num_channels': 3}
+            #           },
             # 'model': {'name': 'nn',
             #           'params': {'input_dim': 32*32*3,
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #          },
-            # 'model': {'name': 'conv',
-            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
-            #           },
+            'model': {'name': 'conv',
+                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
+                      },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
@@ -67,7 +68,7 @@ config = {
         'train_percent': 1.,
         'val_percent': 0.05,
         'prior_percent': .5,
-        'self_certified': False,
+        'self_certified': True,
     },
     'prior': {
         'training': {
@@ -187,14 +188,15 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
-    _ = evaluate_metrics(model=model,
-                         metrics=metrics,
-                         test_loader=strategy.test_loader,
-                         num_samples_metric=config["mcsamples"],
-                         device=device,
-                         pmin=config["pmin"],
-                         wandb_params={'log_wandb': config["log_wandb"],
-                                       'name_wandb': 'Posterior Evaluation'})
+    if strategy.test_loader is not None:
+        _ = evaluate_metrics(model=model,
+                             metrics=metrics,
+                             test_loader=strategy.test_loader,
+                             num_samples_metric=config["mcsamples"],
+                             device=device,
+                             pmin=config["pmin"],
+                             wandb_params={'log_wandb': config["log_wandb"],
+                                           'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
