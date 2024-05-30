@@ -41,14 +41,17 @@ config = {
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #          },
-            'model': {'name': 'conv',
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
+            'model': {'name': 'conv15',
                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
             'posterior_objective': {'name': 'bbb',
-                                    'params': {'kl_penalty': 100.0}
+                                    'params': {'kl_penalty': 1000.0}
                                     },
         },
     'bound': {
@@ -67,7 +70,7 @@ config = {
         'prior_type': 'learnt',
         'train_percent': 1.,
         'val_percent': 0.05,
-        'prior_percent': .5,
+        'prior_percent': .7,
         'self_certified': True,
     },
     'prior': {
