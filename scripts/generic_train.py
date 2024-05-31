@@ -29,9 +29,9 @@ config = {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
-                            },
+            # 'data_loader': {'name': 'cifar10',
+            #                 'params': {'dataset_path': './data/cifar10'}
+            #                 },
             # 'model': {'name': 'resnet',
             #           'params': {'num_channels': 3}
             #           },
@@ -43,17 +43,20 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
             #           },
-            'model': {'name': 'conv15',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
-            # 'data_loader': {'name': 'mnist',
-            #                 'params': {'dataset_path': './data/mnist'}
-            #                 },
+            # 'model': {'name': 'conv15',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
+                            },
             # 'model': {'name': 'nn',
             #           'params': {'input_dim': 28*28,
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #          },
+            'model': {'name': 'conv',
+                      'params': {'in_channels': 1, 'dataset': 'mnist'}
+                      },
             'prior_objective': {'name': 'fclassic',
                                 'params': {'kl_penalty': 0.001,
                                            'delta': 0.025}
@@ -76,10 +79,10 @@ config = {
         'seed': 110,
     },
     'split_strategy': {
-        'prior_type': 'learnt',
+        'prior_type': 'learnt_with_test',
         'train_percent': 1.,
         'val_percent': 0.05,
-        'prior_percent': .7,
+        'prior_percent': .5,
         'self_certified': True,
     },
     'prior': {

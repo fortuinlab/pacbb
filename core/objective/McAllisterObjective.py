@@ -5,7 +5,7 @@ from torch import Tensor
 from core.objective import AbstractObjective
 
 
-class MauerObjective(AbstractObjective):
+class McAllisterObjective(AbstractObjective):
     def __init__(self, kl_penalty: float, delta: float):
         self._kl_penalty = kl_penalty
         self._delta = delta  # confidence value for the training objective
