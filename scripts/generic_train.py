@@ -80,8 +80,8 @@ config = {
     },
     'split_strategy': {
         'prior_type': 'learnt_with_test',
-        'train_percent': 1.,
-        'val_percent': 0.05,
+        'train_percent': 0.9,
+        'val_percent': 0.0,
         'prior_percent': .5,
         'self_certified': True,
     },
@@ -261,3 +261,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

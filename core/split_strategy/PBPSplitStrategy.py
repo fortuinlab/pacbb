@@ -201,13 +201,13 @@ class PBPSplitStrategy(AbstractSplitStrategy):
             [train_dataset, test_dataset]
         )
         train_test_size = len(train_dataset.data) + len(test_dataset.data)
-        train_indices = list(range(train_test_size))
+        train_test_indices = list(range(train_test_size))
         np.random.seed(seed)
-        np.random.shuffle(train_indices)
+        np.random.shuffle(train_test_indices)
         # take fraction of a training dataset
         training_test_split = int(np.round(training_percent * train_test_size))
-        train_indices = train_indices[:training_test_split]
-        test_indices = train_indices[training_test_split:]
+        train_indices = train_test_indices[:training_test_split]
+        test_indices = train_test_indices[training_test_split:]
 
         if val_percent > 0.0:
             prior_split = int(np.round(prior_percent * training_test_split))
