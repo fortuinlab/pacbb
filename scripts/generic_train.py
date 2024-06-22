@@ -91,7 +91,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 100,
             'seed': 1135,
         }
     },
