@@ -57,14 +57,14 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 1, 'dataset': 'mnist'}
             #           },
-            'prior_objective': {'name': 'bbb',
+            'prior_objective': {'name': 'fclassic',
                                 'params': {'kl_penalty': 0.001,
-                                           # 'delta': 0.025
+                                           'delta': 0.025
                                            }
                                 },
-            'posterior_objective': {'name': 'bbb',
+            'posterior_objective': {'name': 'fclassic',
                                     'params': {'kl_penalty': 1.0,
-                                               # 'delta': 0.025
+                                               'delta': 0.025
                                                }
                                     },
          },
