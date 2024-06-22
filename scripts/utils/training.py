@@ -73,10 +73,10 @@ def train_ivon(model: nn.Module,
     #                   optimizer=optimizer,
     #                   distribution=GaussianVariable,
     #                   requires_grad=False)
-    prior = from_zeros(model=model,
-                       rho=torch.log(torch.exp(torch.Tensor([parameters['sigma']])) - 1),
-                       distribution=GaussianVariable,
-                       requires_grad=False)
+    # prior = from_zeros(model=model,
+    #                    rho=torch.log(torch.exp(torch.Tensor([parameters['sigma']])) - 1),
+    #                    distribution=GaussianVariable,
+    #                    requires_grad=False)
 
     if 'seed' in parameters:
         torch.manual_seed(parameters['seed'])
@@ -92,17 +92,22 @@ def train_ivon(model: nn.Module,
                     losses.append(loss.item())
                     loss.backward()
             optimizer.step()
-            posterior = from_ivon(model,
-                                  optimizer=optimizer,
-                                  distribution=GaussianVariable,
-                                  requires_grad=False)
-            kl = compute_kl(prior, posterior)
+            # posterior = from_ivon(model,
+            #                       optimizer=optimizer,
+            #                       distribution=GaussianVariable,
+            #                       requires_grad=False)
+            # kl = compute_kl(prior, posterior)
             avg_loss = sum(losses) / len(losses)
-            elbo = avg_loss + kl / parameters['num_samples']
-        logging.info(f"Epoch: {epoch}, ELBO: {elbo}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
+            # elbo = avg_loss + kl / parameters['num_samples']
+        logging.info(f"Epoch: {epoch}, "
+                     # f"ELBO: {elbo}, "
+                     f"Loss: {loss}, "
+                     # f"KL/n: {kl/parameters['num_samples']}"
+                     )
         if wandb_params is not None and wandb_params["log_wandb"]:
             wandb.log({wandb_params["name_wandb"] + '/Epoch': epoch,
-                       wandb_params["name_wandb"] + '/ELBO': elbo,
+                       # wandb_params["name_wandb"] + '/ELBO': elbo,
                        wandb_params["name_wandb"] + '/Loss': loss,
-                       wandb_params["name_wandb"] + '/KL-n': kl/parameters['num_samples']})
+                       # wandb_params["name_wandb"] + '/KL-n': kl/parameters['num_samples']
+                       })
     return optimizer

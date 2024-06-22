@@ -33,9 +33,9 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },  # mnist or cifar10
-            # 'model': {'name': 'resnet',
-            #           'params': {'num_channels': 3}
-            #           },
+            'model': {'name': 'resnet',
+                      'params': {'num_channels': 3}
+                      },
             # 'model': {'name': 'nn',
             #           'params': {'input_dim': 32*32*3,
             #                      'hidden_dim': 100,
@@ -44,16 +44,22 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
             #           },
-            'model': {'name': 'conv15',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
+#             'model': {'name': 'conv15',
+#                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
+#                       },
+#             'data_loader': {'name': 'mnist',
+#                             'params': {'dataset_path': './data/mnist'}
+#                             },
+#             'model': {'name': 'conv',
+#                       'params': {'in_channels': 1, 'dataset': 'mnist'}
+#                       },
             'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001}
                                 },
             'posterior_objective': {'name': 'bbb',
                                     'params': {'kl_penalty': 1000.0}
                                     },
-        },
+            },
     'bound': {
         'delta': 0.025,
         'delta_test': 0.01,
@@ -70,14 +76,14 @@ config = {
         'prior_type': 'learnt',
         'train_percent': 1.,
         'val_percent': 0.05,
-        'prior_percent': .7,
+        'prior_percent': .5,
         'self_certified': True,
     },
     'prior': {
         'training': {
             'lr': 0.1,
             'momentum': 0.95,
-            'epochs': 100,
+            'epochs': 25,
             'seed': 1135,
             'train_samples': 10,
         }
