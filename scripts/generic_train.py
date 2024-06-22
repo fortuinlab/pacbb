@@ -82,8 +82,8 @@ config = {
     },
     'split_strategy': {
         'prior_type': 'learnt_with_test',
-        'train_percent': 0.9,
-        'val_percent': 0.0,
+        'train_percent': 1.0,
+        'val_percent': 0.05,
         'prior_percent': .5,
         'self_certified': True,
     },
