@@ -21,7 +21,7 @@ from scripts.utils.training import train_ivon
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': False,
+    'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
