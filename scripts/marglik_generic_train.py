@@ -19,7 +19,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -27,17 +27,28 @@ config = {
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
+            # 'data_loader': {'name': 'cifar10',
+            #                 'params': {'dataset_path': './data/cifar10'}
+            #                 },  # mnist or cifar10
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
+            'model': {'name': 'nn',
+                      'params': {'input_dim': 28*28,
+                                 'hidden_dim': 100,
+                                 'output_dim': 10}
+                      },
+            # 'model': {'name': 'resnet',
+            #           'params': {'num_channels': 3}
+            #           },
             # 'model': {'name': 'nn',
             #           'params': {'input_dim': 32*32*3,
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #           },
-            'model': {'name': 'conv',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
+#             'model': {'name': 'conv',
+#                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
+#                       },
             # 'model': {'name': 'resnet',
             #           'params': {}
             #           },
@@ -71,7 +82,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 3,
             'seed': 1135,
         }
     },

@@ -207,7 +207,7 @@ def compute_standard_normal_cdf(x: float) -> float:
     return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
 
-def truncated_normal_fill_tensor(
+def vectruncated_normal_fill_tensor(
     tensor: torch.Tensor,
     mean: float = 0.0,
     std: float = 1.0,
