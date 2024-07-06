@@ -21,6 +21,7 @@ from scripts.utils.training import train_bnn
 logging.basicConfig(level=logging.INFO)
 
 config = {
+    'bnn':  True,
     'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
