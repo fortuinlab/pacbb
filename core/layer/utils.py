@@ -27,8 +27,10 @@ def get_torch_layers(model: nn.Module) -> Iterator[Tuple[LayerNameT, nn.Module]]
 
 
 def is_bayesian_torch_layer(layer: nn.Module) -> bool:
-    return (hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight') and
-            hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias'))
+    return ((hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight') and
+             hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias')) or
+            (hasattr(layer, 'mu_kernel') and hasattr(layer, 'rho_kernel') and
+             hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias')))
 
 
 def get_bayesian_torch_layers(model: nn.Module) -> Iterator[Tuple[LayerNameT, nn.Module]]:
