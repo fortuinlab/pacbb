@@ -94,17 +94,19 @@ def _from_any(model: nn.Module,
               weight_rho_fill_func: Callable[[nn.Module], Tensor],
               bias_mu_fill_func: Callable[[nn.Module], Tensor],
               bias_rho_fill_func: Callable[[nn.Module], Tensor],
+              weight_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'weight'),
+              bias_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'bias')
               ) -> DistributionT:
     distributions = {}
     for name, layer in get_layers_func(model):
-        if layer.weight is not None:
+        if weight_exists:
             weight_distribution = distribution(mu=weight_mu_fill_func(layer),
                                                rho=weight_rho_fill_func(layer),
                                                mu_requires_grad=requires_grad,
                                                rho_requires_grad=requires_grad)
         else:
             weight_distribution = None
-        if layer.bias is not None:
+        if bias_exists:
             bias_distribution = distribution(mu=bias_mu_fill_func(layer),
                                              rho=bias_rho_fill_func(layer),
                                              mu_requires_grad=requires_grad,
@@ -156,6 +158,8 @@ def from_layered(model: torch.nn.Module,
                  get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                  ) -> DistributionT:
     return _from_any(model, distribution, requires_grad, get_layers_func,
+                     weight_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
+                     bias_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
                      weight_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_mu']).detach().clone(),
                      weight_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_rho']).detach().clone(),
                      bias_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_mu']).detach().clone(),

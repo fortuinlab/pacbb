@@ -21,7 +21,7 @@ from scripts.utils.training import train_bnn
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -40,11 +40,19 @@ config = {
             # 'model': {'name': 'resnet',
             #           'params': {}
             #           },
-            'prior_objective': {'name': 'bbb',
-                                'params': {'kl_penalty': 0.001}
+            # 'data_loader': {'name': 'cifar10',
+            #                 'params': {'dataset_path': './data/cifar10'}
+            #                 },
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
+            'prior_objective': {'name': 'fquad',
+                                'params': {'kl_penalty': 0.001,
+                                           'delta': 0.025}
                                 },
-            'posterior_objective': {'name': 'bbb',
-                                    'params': {'kl_penalty': 1.0}
+            'posterior_objective': {'name': 'fquad',
+                                    'params': {'kl_penalty': 1.0,
+                                               'delta': 0.025}
                                     },
          },
     'bound': {
@@ -70,7 +78,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 25,
+            'epochs': 3,
             'seed': 1135,
         }
     },
