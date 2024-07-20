@@ -5,7 +5,7 @@ import ivon
 import torch
 from torch import nn, Tensor
 
-from core.layer.utils import get_torch_layers, LayerNameT
+from core.layer.utils import get_torch_layers, LayerNameT, get_bayesian_torch_layers
 from core.distribution import AbstractVariable
 
 
@@ -94,17 +94,19 @@ def _from_any(model: nn.Module,
               weight_rho_fill_func: Callable[[nn.Module], Tensor],
               bias_mu_fill_func: Callable[[nn.Module], Tensor],
               bias_rho_fill_func: Callable[[nn.Module], Tensor],
+              weight_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'weight'),
+              bias_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'bias')
               ) -> DistributionT:
     distributions = {}
     for name, layer in get_layers_func(model):
-        if layer.weight is not None:
+        if weight_exists:
             weight_distribution = distribution(mu=weight_mu_fill_func(layer),
                                                rho=weight_rho_fill_func(layer),
                                                mu_requires_grad=requires_grad,
                                                rho_requires_grad=requires_grad)
         else:
             weight_distribution = None
-        if layer.bias is not None:
+        if bias_exists:
             bias_distribution = distribution(mu=bias_mu_fill_func(layer),
                                              rho=bias_rho_fill_func(layer),
                                              mu_requires_grad=requires_grad,
@@ -156,10 +158,42 @@ def from_layered(model: torch.nn.Module,
                  get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                  ) -> DistributionT:
     return _from_any(model, distribution, requires_grad, get_layers_func,
+                     weight_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
+                     bias_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
                      weight_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_mu']).detach().clone(),
                      weight_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_rho']).detach().clone(),
                      bias_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_mu']).detach().clone(),
                      bias_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_rho']).detach().clone())
+
+
+def from_bnn(model: nn.Module,
+             distribution: Type[AbstractVariable],
+             requires_grad: bool = True,
+             get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_bayesian_torch_layers,
+             ) -> DistributionT:
+    distributions = {}
+    for name, layer in get_layers_func(model):
+        if hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight'):
+            weight_distribution = distribution(mu=layer.__getattr__('mu_weight').detach().clone(),
+                                               rho=layer.__getattr__('rho_weight').detach().clone(),
+                                               mu_requires_grad=requires_grad,
+                                               rho_requires_grad=requires_grad)
+        elif hasattr(layer, 'mu_kernel') and hasattr(layer, 'rho_kernel'):
+            weight_distribution = distribution(mu=layer.__getattr__('mu_kernel').detach().clone(),
+                                               rho=layer.__getattr__('rho_kernel').detach().clone(),
+                                               mu_requires_grad=requires_grad,
+                                               rho_requires_grad=requires_grad)
+        else:
+            weight_distribution = None
+        if hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias'):
+            bias_distribution = distribution(mu=layer.__getattr__('mu_bias').detach().clone(),
+                                             rho=layer.__getattr__('rho_bias').detach().clone(),
+                                             mu_requires_grad=requires_grad,
+                                             rho_requires_grad=requires_grad)
+        else:
+            bias_distribution = None
+        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+    return distributions
 
 
 def from_copy(dist: DistributionT,

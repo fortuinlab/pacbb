@@ -184,6 +184,109 @@ class PBPSplitStrategy(AbstractSplitStrategy):
             **loader_kwargs,
         )
 
+    def _split_learnt_self_certified_with_test(
+        self,
+        train_dataset: data.Dataset,
+        test_dataset: data.Dataset,
+        split_config: Dict,
+        loader_kwargs: Dict,
+    ) -> None:
+        batch_size = split_config["batch_size"]
+        training_percent = self._train_percent
+        val_percent = self._val_percent
+        prior_percent = self._prior_percent
+        seed = split_config["seed"]
+
+        train_test_dataset = torch.utils.data.ConcatDataset(
+            [train_dataset, test_dataset]
+        )
+        train_test_size = len(train_dataset.data) + len(test_dataset.data)
+        train_test_indices = list(range(train_test_size))
+        np.random.seed(seed)
+        np.random.shuffle(train_test_indices)
+        # take fraction of a training dataset
+        training_test_split = int(np.round(training_percent * train_test_size))
+        train_indices = train_test_indices[:training_test_split]
+        test_indices = train_test_indices[training_test_split:]
+
+        if val_percent > 0.0:
+            prior_split = int(np.round(prior_percent * training_test_split))
+            bound_idx, prior_val_idx = (
+                train_indices[prior_split:],
+                train_indices[:prior_split],
+            )
+            val_split = int(np.round(val_percent * prior_split))
+            prior_idx, val_idx = (
+                prior_val_idx[val_split:],
+                prior_val_idx[:val_split],
+            )
+        else:
+            prior_split = int(np.round(prior_percent * training_test_split))
+            bound_idx, prior_idx = (
+                train_indices[prior_split:],
+                train_indices[:prior_split],
+            )
+            val_idx = None
+
+        train_sampler = SubsetRandomSampler(train_indices)
+        bound_sampler = SubsetRandomSampler(bound_idx)
+        prior_sampler = SubsetRandomSampler(prior_idx)
+        val_sampler = SubsetRandomSampler(val_idx)
+        test_sampler  = SubsetRandomSampler(test_indices)
+
+        self.posterior_loader = torch.utils.data.DataLoader(
+            train_test_dataset,
+            batch_size=batch_size,
+            sampler=train_sampler,
+            shuffle=False,
+            **loader_kwargs,
+        )
+        self.prior_loader = torch.utils.data.DataLoader(
+            train_test_dataset,
+            batch_size=batch_size,
+            sampler=prior_sampler,
+            shuffle=False,
+            **loader_kwargs,
+        )
+        if val_idx:
+            self.val_loader = torch.utils.data.DataLoader(
+                train_test_dataset,
+                batch_size=batch_size,
+                sampler=val_sampler,
+                shuffle=False,
+                **loader_kwargs,
+            )
+        if len(test_indices) > 0:
+            self.test_loader = torch.utils.data.DataLoader(
+                train_test_dataset,
+                batch_size=batch_size,
+                sampler=test_sampler,
+                shuffle=False,
+                **loader_kwargs,
+            )
+            self.test_loader_1batch = torch.utils.data.DataLoader(
+                train_test_dataset,
+                batch_size=len(test_indices),
+                sampler=test_sampler,
+                **loader_kwargs,
+            )
+        else:
+            self.test_loader = None
+            self.test_loader_1batch = None
+        self.bound_loader = torch.utils.data.DataLoader(
+            train_test_dataset,
+            batch_size=batch_size,
+            sampler=bound_sampler,
+            shuffle=False,
+            **loader_kwargs,
+        )
+        self.bound_loader_1batch = torch.utils.data.DataLoader(
+            train_test_dataset,
+            batch_size=len(bound_idx),
+            sampler=bound_sampler,
+            **loader_kwargs,
+        )
+
     def _split_learnt_not_self_certified(
         self,
         train_dataset: data.Dataset,
@@ -304,5 +407,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
                     split_config=split_config,
                     loader_kwargs=loader_kwargs,
                 )
+        elif self._prior_type == "learnt_with_test":
+            if self._self_certified:
+                self._split_learnt_self_certified_with_test(
+                    train_dataset=train_dataset,
+                    test_dataset=test_dataset,
+                    split_config=split_config,
+                    loader_kwargs=loader_kwargs,
+                )
+            else:
+                raise ValueError(f"Invalid prior_type: {self._prior_type}")
         else:
             raise ValueError(f"Invalid prior_type: {self._prior_type}")

@@ -2,14 +2,16 @@ import wandb
 import torch
 import logging
 
-from core.split_strategy import FaultySplitStrategy
+from core.split_strategy import PBPSplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random
 from core.distribution import GaussianVariable
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
 from core.risk import certify_risk
+from core.metric import evaluate_metrics
 
 from scripts.utils.factory import (LossFactory,
+                                   MetricFactory,
                                    BoundFactory,
                                    DataLoaderFactory,
                                    ModelFactory,
@@ -21,14 +23,15 @@ config = {
     'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
-    'sigma': 0.01,
+    'sigma': 0.03,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
+            'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
             'bounds': ['kl', 'mcallister'],
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
-                            },  # mnist or cifar10
+                            },
             # 'model': {'name': 'resnet',
             #           'params': {'num_channels': 3}
             #           },
@@ -40,11 +43,29 @@ config = {
             'model': {'name': 'conv',
                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
-            'prior_objective': {'name': 'bbb',
-                                'params': {'kl_penalty': 0.001}
+            # 'model': {'name': 'conv15',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
+            # 'data_loader': {'name': 'mnist',
+            #                 'params': {'dataset_path': './data/mnist'}
+            #                 },
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 28*28,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #          },
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 1, 'dataset': 'mnist'}
+            #           },
+            'prior_objective': {'name': 'fquad',
+                                'params': {'kl_penalty': 0.001,
+                                           'delta': 0.025
+                                           }
                                 },
-            'posterior_objective': {'name': 'bbb',
-                                    'params': {'kl_penalty': 1.0}
+            'posterior_objective': {'name': 'fquad',
+                                    'params': {'kl_penalty': 1.0,
+                                               'delta': 0.025
+                                               }
                                     },
          },
     'bound': {
@@ -61,7 +82,7 @@ config = {
     },
     'split_strategy': {
         'prior_type': 'learnt',
-        'train_percent': 1.,
+        'train_percent': 1.0,
         'val_percent': 0.05,
         'prior_percent': .5,
         'self_certified': True,
@@ -95,6 +116,11 @@ def main():
     loss_factory = LossFactory()
     losses = {loss_name: loss_factory.create(loss_name) for loss_name in config["factory"]["losses"]}
 
+    # Metrics
+    logging.info(f'Select metrics: {config["factory"]["metrics"]}')
+    metric_factory = MetricFactory()
+    metrics = {metric_name: metric_factory.create(metric_name) for metric_name in config["factory"]["metrics"]}
+
     # Bound
     logging.info(f'Selected bounds: {config["factory"]["bounds"]}')
     bound_factory = BoundFactory()
@@ -109,11 +135,11 @@ def main():
     loader = data_loader_factory.create(config["factory"]["data_loader"]["name"],
                                         **config["factory"]["data_loader"]["params"])
 
-    strategy = FaultySplitStrategy(prior_type=config['split_strategy']['prior_type'],
-                                   train_percent=config['split_strategy']['train_percent'],
-                                   val_percent=config['split_strategy']['val_percent'],
-                                   prior_percent=config['split_strategy']['prior_percent'],
-                                   self_certified=config['split_strategy']['self_certified'])
+    strategy = PBPSplitStrategy(prior_type=config['split_strategy']['prior_type'],
+                                train_percent=config['split_strategy']['train_percent'],
+                                val_percent=config['split_strategy']['val_percent'],
+                                prior_percent=config['split_strategy']['prior_percent'],
+                                self_certified=config['split_strategy']['self_certified'])
     strategy.split(loader, split_config=config['split_config'])
 
     # Model
@@ -156,6 +182,16 @@ def main():
           device=device,
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Prior Train'})
+
+    if strategy.test_loader is not None:
+        _  = evaluate_metrics(model=model,
+                              metrics=metrics,
+                              test_loader=strategy.test_loader,
+                              num_samples_metric=config["mcsamples"],
+                              device=device,
+                              pmin=config["pmin"],
+                              wandb_params={'log_wandb': config["log_wandb"],
+                                            'name_wandb': 'Prior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
@@ -202,6 +238,16 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
+    # if strategy.test_loader is not None:
+    #     _ = evaluate_metrics(model=model,
+    #                          metrics=metrics,
+    #                          test_loader=strategy.test_loader,
+    #                          num_samples_metric=config["mcsamples"],
+    #                          device=device,
+    #                          pmin=config["pmin"],
+    #                          wandb_params={'log_wandb': config["log_wandb"],
+    #                                        'name_wandb': 'Posterior Evaluation'})
+
     _ = certify_risk(model=model,
                      bounds=bounds,
                      losses=losses,
@@ -217,3 +263,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

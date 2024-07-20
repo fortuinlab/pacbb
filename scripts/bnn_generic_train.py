@@ -4,7 +4,7 @@ import logging
 from bayesian_torch.models.dnn_to_bnn import dnn_to_bnn
 
 from core.split_strategy import FaultySplitStrategy
-from core.distribution.utils import from_copy, from_layered
+from core.distribution.utils import from_copy, from_layered, from_bnn
 from core.distribution import GaussianVariable
 from core.training import train
 from core.model import dnn_to_probnn, update_dist
@@ -21,6 +21,7 @@ from scripts.utils.training import train_bnn
 logging.basicConfig(level=logging.INFO)
 
 config = {
+    'bnn':  True,
     'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
@@ -32,19 +33,30 @@ config = {
             'data_loader': {'name': 'mnist',
                             'params': {'dataset_path': './data/mnist'}
                             },  # mnist or cifar10
-            'model': {'name': 'nn',
-                      'params': {'input_dim': 28*28,
-                                 'hidden_dim': 100,
-                                 'output_dim': 10}
-                      },
+            # 'model': {'name': 'nn',
+            #           'params': {'input_dim': 28*28,
+            #                      'hidden_dim': 100,
+            #                      'output_dim': 10}
+            #           },
+            'model': {'name': 'conv',
+                      'params': {'in_channels': 1, 'dataset': 'mnist'}
+                     },
             # 'model': {'name': 'resnet',
             #           'params': {}
             #           },
-            'prior_objective': {'name': 'bbb',
-                                'params': {'kl_penalty': 0.001}
+            # 'data_loader': {'name': 'cifar10',
+            #                 'params': {'dataset_path': './data/cifar10'}
+            #                 },
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
+            'prior_objective': {'name': 'fquad',
+                                'params': {'kl_penalty': 0.001,
+                                           'delta': 0.025}
                                 },
-            'posterior_objective': {'name': 'bbb',
-                                    'params': {'kl_penalty': 1.0}
+            'posterior_objective': {'name': 'fquad',
+                                    'params': {'kl_penalty': 1.0,
+                                               'delta': 0.025}
                                     },
          },
     'bound': {
@@ -156,17 +168,8 @@ def main():
               wandb_params={'log_wandb': config["log_wandb"],
                             'name_wandb': 'Prior Train'})
 
-    attribute_mapping = {
-        'weight_mu': 'mu_weight',
-        'weight_rho': 'rho_weight',
-        'bias_mu': 'mu_bias',
-        'bias_rho': 'rho_bias',
-    }
-
-    d = from_layered(model=model,
-                     attribute_mapping=attribute_mapping,
-                     distribution=GaussianVariable,
-                     get_layers_func=get_bayesian_torch_layers)
+    d = from_bnn(model=model,
+                 distribution=GaussianVariable)
 
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
