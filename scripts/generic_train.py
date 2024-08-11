@@ -20,7 +20,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.03,
@@ -57,14 +57,19 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 1, 'dataset': 'mnist'}
             #           },
-            'prior_objective': {'name': 'fquad',
+            # 'prior_objective': {'name': 'bbb',
+            #                     'params': {'kl_penalty': 0.001,
+            #                                # 'delta': 0.025
+            #                                }
+            #                     },
+            'prior_objective': {'name': 'naive_iwae',
                                 'params': {'kl_penalty': 0.001,
-                                           'delta': 0.025
+                                           'n': 10,
                                            }
                                 },
-            'posterior_objective': {'name': 'fquad',
+            'posterior_objective': {'name': 'bbb',
                                     'params': {'kl_penalty': 1.0,
-                                               'delta': 0.025
+                                               # 'delta': 0.025
                                                }
                                     },
          },
@@ -91,7 +96,7 @@ config = {
         'training': {
             'lr': 0.001,
             'momentum': 0.95,
-            'epochs': 100,
+            'epochs': 5,
             'seed': 1135,
         }
     },
@@ -183,15 +188,15 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Prior Train'})
 
-    if strategy.test_loader is not None:
-        _  = evaluate_metrics(model=model,
-                              metrics=metrics,
-                              test_loader=strategy.test_loader,
-                              num_samples_metric=config["mcsamples"],
-                              device=device,
-                              pmin=config["pmin"],
-                              wandb_params={'log_wandb': config["log_wandb"],
-                                            'name_wandb': 'Prior Evaluation'})
+    # if strategy.test_loader is not None:
+    #     _  = evaluate_metrics(model=model,
+    #                           metrics=metrics,
+    #                           test_loader=strategy.test_loader,
+    #                           num_samples_metric=config["mcsamples"],
+    #                           device=device,
+    #                           pmin=config["pmin"],
+    #                           wandb_params={'log_wandb': config["log_wandb"],
+    #                                         'name_wandb': 'Prior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,

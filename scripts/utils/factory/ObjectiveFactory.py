@@ -1,4 +1,4 @@
-from core.objective import AbstractObjective, FClassicObjective, McAllisterObjective, FQuadObjective, BBBObjective, TolstikhinObjective
+from core.objective import AbstractObjective, FClassicObjective, McAllisterObjective, FQuadObjective, BBBObjective, TolstikhinObjective, NaiveIWAEObjective
 
 from scripts.utils.factory import AbstractFactory
 
@@ -11,3 +11,4 @@ class ObjectiveFactory(AbstractFactory[AbstractObjective]):
         self.register_creator("fquad", FQuadObjective)
         self.register_creator("mcallister", McAllisterObjective)
         self.register_creator("tolstikhin", TolstikhinObjective)
+        self.register_creator("naive_iwae", NaiveIWAEObjective)

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 from core.distribution.utils import compute_kl, DistributionT
-from core.objective import AbstractObjective
+from core.objective import AbstractObjective, AbstractSamplingObjective
 from core.model import bounded_call
 
 
@@ -34,13 +34,27 @@ def train(model: nn.Module,
         for i, (data, target) in tqdm(enumerate(train_loader)):
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            if 'pmin' in parameters:
-                output = bounded_call(model, data, parameters['pmin'])
+            if isinstance(objective, AbstractObjective):
+                if 'pmin' in parameters:
+                    output = bounded_call(model, data, parameters['pmin'])
+                else:
+                    output = model(data)
+                loss = criterion(output, target)
+                kl = compute_kl(posterior, prior)
+                objective_value = objective.calculate(loss, kl, parameters['num_samples'])
+            elif isinstance(objective, AbstractSamplingObjective):
+                losses = []
+                for i in range(objective.n):
+                    if 'pmin' in parameters:
+                        output = bounded_call(model, data, parameters['pmin'])
+                    else:
+                        output = model(data)
+                    losses.append(criterion(output, target))
+                kl = compute_kl(posterior, prior)
+                objective_value = objective.calculate(losses, kl, parameters['num_samples'])
+                loss = sum(losses) / objective.n
             else:
-                output = model(data)
-            kl = compute_kl(posterior, prior)
-            loss = criterion(output, target)
-            objective_value = objective.calculate(loss, kl, parameters['num_samples'])
+                raise ValueError(f'Invalid objective type: {type(objective)}')
             objective_value.backward()
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
