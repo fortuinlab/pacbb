@@ -62,9 +62,9 @@ config = {
             #                                # 'delta': 0.025
             #                                }
             #                     },
-            'prior_objective': {'name': 'naive_iwae',
+            'prior_objective': {'name': 'fquad',
                                 'params': {'kl_penalty': 0.001,
-                                           'n': 10,
+                                           'delta': 0.025,
                                            }
                                 },
             'posterior_objective': {'name': 'bbb',

@@ -57,14 +57,19 @@ config = {
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 1, 'dataset': 'mnist'}
             #           },
-            'prior_objective': {'name': 'fquad',
+            # 'prior_objective': {'name': 'bbb',
+            #                     'params': {'kl_penalty': 0.001,
+            #                                # 'delta': 0.025
+            #                                }
+            #                     },
+            'prior_objective': {'name': 'bbb',
                                 'params': {'kl_penalty': 0.001,
-                                           'delta': 0.025
+                                           # 'delta': 0.025
                                            }
                                 },
-            'posterior_objective': {'name': 'fquad',
+            'posterior_objective': {'name': 'bbb',
                                     'params': {'kl_penalty': 1.0,
-                                               'delta': 0.025
+                                               # 'delta': 0.025
                                                }
                                     },
          },
@@ -148,13 +153,14 @@ def main():
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_random(model=model,
+    prior_prior = from_zeros(model=model,
                              rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
                              distribution=GaussianVariable,
                              requires_grad=False)
-    prior = from_copy(dist=prior_prior,
-                      distribution=GaussianVariable,
-                      requires_grad=True)
+    prior = from_random(model=model,
+                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
+                        distribution=GaussianVariable,
+                        requires_grad=True)
     dnn_to_probnn(model, prior, prior_prior)
     model.to(device)
 
@@ -191,18 +197,18 @@ def main():
     #                           pmin=config["pmin"],
     #                           wandb_params={'log_wandb': config["log_wandb"],
     #                                         'name_wandb': 'Prior Evaluation'})
-    #
-    # _ = certify_risk(model=model,
-    #                  bounds=bounds,
-    #                  losses=losses,
-    #                  posterior=prior,
-    #                  prior=prior_prior,
-    #                  bound_loader=strategy.bound_loader,
-    #                  num_samples_loss=config["mcsamples"],
-    #                  device=device,
-    #                  pmin=config["pmin"],
-    #                  wandb_params={'log_wandb': config["log_wandb"],
-    #                                'name_wandb': 'Prior Bound'})
+
+    _ = certify_risk(model=model,
+                     bounds=bounds,
+                     losses=losses,
+                     posterior=prior,
+                     prior=prior_prior,
+                     bound_loader=strategy.bound_loader,
+                     num_samples_loss=config["mcsamples"],
+                     device=device,
+                     pmin=config["pmin"],
+                     wandb_params={'log_wandb': config["log_wandb"],
+                                   'name_wandb': 'Prior Bound'})
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
