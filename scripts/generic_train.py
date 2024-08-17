@@ -2,7 +2,7 @@ import wandb
 import torch
 import logging
 
-from core.split_strategy import PBPSplitStrategy
+from core.split_strategy import FaultySplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random
 from core.distribution import GaussianVariable
 from core.training import train
@@ -20,18 +20,18 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
-    'sigma': 0.03,
+    'sigma': 0.01,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
             'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
             'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
-                            },
+            # 'data_loader': {'name': 'cifar10',
+            #                 'params': {'dataset_path': './data/cifar10'}
+            #                 },
             # 'model': {'name': 'resnet',
             #           'params': {'num_channels': 3}
             #           },
@@ -40,20 +40,20 @@ config = {
             #                      'hidden_dim': 100,
             #                      'output_dim': 10}
             #          },
-            'model': {'name': 'conv',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
+            # 'model': {'name': 'conv',
+            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
+            #           },
             # 'model': {'name': 'conv15',
             #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
             #           },
-            # 'data_loader': {'name': 'mnist',
-            #                 'params': {'dataset_path': './data/mnist'}
-            #                 },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 28*28,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
+            'data_loader': {'name': 'mnist',
+                            'params': {'dataset_path': './data/mnist'}
+                            },
+            'model': {'name': 'nn',
+                      'params': {'input_dim': 28*28,
+                                 'hidden_dim': 100,
+                                 'output_dim': 10}
+                     },
             # 'model': {'name': 'conv',
             #           'params': {'in_channels': 1, 'dataset': 'mnist'}
             #           },
@@ -62,7 +62,7 @@ config = {
             #                                # 'delta': 0.025
             #                                }
             #                     },
-            'prior_objective': {'name': 'naive_iwae',
+            'prior_objective': {'name': 'iwae',
                                 'params': {'kl_penalty': 0.001,
                                            'n': 10,
                                            }
@@ -140,11 +140,11 @@ def main():
     loader = data_loader_factory.create(config["factory"]["data_loader"]["name"],
                                         **config["factory"]["data_loader"]["params"])
 
-    strategy = PBPSplitStrategy(prior_type=config['split_strategy']['prior_type'],
-                                train_percent=config['split_strategy']['train_percent'],
-                                val_percent=config['split_strategy']['val_percent'],
-                                prior_percent=config['split_strategy']['prior_percent'],
-                                self_certified=config['split_strategy']['self_certified'])
+    strategy = FaultySplitStrategy(prior_type=config['split_strategy']['prior_type'],
+                                   train_percent=config['split_strategy']['train_percent'],
+                                   val_percent=config['split_strategy']['val_percent'],
+                                   prior_percent=config['split_strategy']['prior_percent'],
+                                   self_certified=config['split_strategy']['self_certified'])
     strategy.split(loader, split_config=config['split_config'])
 
     # Model
@@ -157,10 +157,11 @@ def main():
                              rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
                              distribution=GaussianVariable,
                              requires_grad=False)
-    prior = from_random(model=model,
-                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                        distribution=GaussianVariable,
-                        requires_grad=True)
+    # prior = from_random(model=model,
+    #                     rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
+    #                     distribution=GaussianVariable,
+    #                     requires_grad=True)
+    prior = from_copy(dist=prior_prior, distribution=GaussianVariable)
     dnn_to_probnn(model, prior, prior_prior)
     model.to(device)
 

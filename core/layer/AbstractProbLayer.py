@@ -12,6 +12,8 @@ class AbstractProbLayer(nn.Module, ABC):
     _bias_dist: AbstractVariable
     _prior_weight_dist: AbstractVariable
     _prior_bias_dist: AbstractVariable
+    _sampled_weight: Tensor
+    _sampled_bias: Tensor
 
     def probabilistic(self, mode: bool = True):
         if not isinstance(mode, bool):
@@ -32,4 +34,6 @@ class AbstractProbLayer(nn.Module, ABC):
                 sampled_bias = self._bias_dist.mu if self._bias_dist else None
             else:
                 raise ValueError('Only training with probabilistic mode is allowed')
+        self._sampled_weight = sampled_weight
+        self._sampled_bias = sampled_bias
         return sampled_weight, sampled_bias

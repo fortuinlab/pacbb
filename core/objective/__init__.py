@@ -6,3 +6,4 @@ from core.objective.FClassicObjective import FClassicObjective
 from core.objective.McAllisterObjective import McAllisterObjective
 from core.objective.TolstikhinObjective import TolstikhinObjective
 from core.objective.NaiveIWAEObjective import NaiveIWAEObjective
+from core.objective.IWAEObjective import IWAEObjective

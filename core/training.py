@@ -9,7 +9,7 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 from core.distribution.utils import compute_kl, DistributionT
-from core.objective import AbstractObjective, AbstractSamplingObjective
+from core.objective import AbstractObjective, AbstractSamplingObjective, IWAEObjective
 from core.model import bounded_call
 
 
@@ -53,6 +53,10 @@ def train(model: nn.Module,
                 kl = compute_kl(posterior, prior)
                 objective_value = objective.calculate(losses, kl, parameters['num_samples'])
                 loss = sum(losses) / objective.n
+            elif isinstance(objective, IWAEObjective):
+                objective_value = objective.calculate(model, data, target, pmin=parameters.get('pmin', None))
+                loss = criterion(model(data), target)
+                kl = compute_kl(posterior, prior)
             else:
                 raise ValueError(f'Invalid objective type: {type(objective)}')
             objective_value.backward()
