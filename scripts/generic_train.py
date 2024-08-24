@@ -20,7 +20,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': False,
+    'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -65,6 +65,7 @@ config = {
             'prior_objective': {'name': 'iwae',
                                 'params': {'kl_penalty': 0.001,
                                            'n': 10,
+                                           'temperature': 1e-4,
                                            }
                                 },
             'posterior_objective': {'name': 'bbb',
@@ -94,7 +95,7 @@ config = {
     },
     'prior': {
         'training': {
-            'lr': 0.001,
+            'lr': 0.01,
             'momentum': 0.95,
             'epochs': 100,
             'seed': 1135,

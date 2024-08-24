@@ -1,6 +1,8 @@
+import logging
 import torch
+import wandb
 from torch import Tensor, nn
-from typing import List
+from typing import List, Dict
 import numpy as np
 import torch.distributions as dists
 
@@ -9,12 +11,20 @@ from core.layer.utils import get_torch_layers
 
 
 class IWAEObjective:
-    def __init__(self, kl_penalty: float, n: int) -> None:
+    def __init__(self, kl_penalty: float, n: int, temperature: int) -> None:
         self._kl_penalty = kl_penalty
         self.n: int = n
         self.criterion = torch.nn.NLLLoss()
+        self._temperature = temperature
 
-    def calculate(self, model: nn.Module, data: Tensor, target: Tensor, pmin: float = None) -> Tensor:
+    def calculate(self,
+                  model: nn.Module,
+                  data: Tensor,
+                  target: Tensor,
+                  epoch: int,
+                  batch: int,
+                  pmin: float = None,
+                  wandb_params: Dict = None) -> Tensor:
 
         log_losses = []
 
@@ -27,8 +37,7 @@ class IWAEObjective:
 
             # log_loss_i = torch.sum(p_x_g_w, dim=1)
             # log_loss_i = self.criterion(p_x_g_w, target)
-            temperature = 0.00001
-            log_loss_i = dists.Categorical(logits=p_x_g_w).log_prob(target)
+            log_p_x_g_w = dists.Categorical(logits=p_x_g_w).log_prob(target)
 
             log_p_w_total = 0
             log_q_w_g_x_total = 0
@@ -57,7 +66,14 @@ class IWAEObjective:
                 else:
                     log_q_w_g_x_total += log_q_w_g_x_weight.sum() + log_q_w_g_x_bias.sum()
 
-            log_loss_i = log_loss_i + (log_p_w_total.repeat(len(log_loss_i)) - log_q_w_g_x_total.repeat(len(log_loss_i)))*temperature
+            temperature_term = self._temperature * (log_p_w_total.repeat(len(log_p_x_g_w)) - log_q_w_g_x_total.repeat(len(log_p_x_g_w)))
+            log_loss_i = log_p_x_g_w + temperature_term
+            if i == self.n-1 and batch in [132,]:
+                logging.info(
+                    f"Sample: {i}, Epoch: {epoch}, Batch: {batch}, Mean likelihood: {log_p_x_g_w.mean()}, Mean temperature term: {temperature_term.mean()}, Temperature: {temperature}")
+                if wandb_params is not None and wandb_params["log_wandb"]:
+                    wandb.log({wandb_params["name_wandb"] + '/Mean likelihood': log_p_x_g_w.mean(),
+                               wandb_params["name_wandb"] + '/Mean temperature term': temperature_term.mean()})
             log_losses.append(log_loss_i)
         loss = - (torch.logsumexp(torch.stack(log_losses), dim=0) - np.log(self.n)).mean()
         # loss = -log_losses[0].mean()

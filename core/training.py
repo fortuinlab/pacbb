@@ -30,6 +30,11 @@ def train(model: nn.Module,
 
     if 'seed' in parameters:
         torch.manual_seed(parameters['seed'])
+
+    loss = None
+    kl = None
+    objective_value = None
+
     for epoch in range(parameters['epochs']):
         for i, (data, target) in tqdm(enumerate(train_loader)):
             data, target = data.to(device), target.to(device)
@@ -54,7 +59,13 @@ def train(model: nn.Module,
                 objective_value = objective.calculate(losses, kl, parameters['num_samples'])
                 loss = sum(losses) / objective.n
             elif isinstance(objective, IWAEObjective):
-                objective_value = objective.calculate(model, data, target, pmin=parameters.get('pmin', None))
+                objective_value = objective.calculate(model,
+                                                      data,
+                                                      target,
+                                                      epoch=epoch,
+                                                      batch=i,
+                                                      pmin=parameters.get('pmin', None),
+                                                      wandb_params=wandb_params)
                 loss = criterion(model(data), target)
                 kl = compute_kl(posterior, prior)
             else:
