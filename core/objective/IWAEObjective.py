@@ -70,7 +70,7 @@ class IWAEObjective:
             log_loss_i = log_p_x_g_w + temperature_term
             if i == self.n-1 and batch in [132,]:
                 logging.info(
-                    f"Sample: {i}, Epoch: {epoch}, Batch: {batch}, Mean likelihood: {log_p_x_g_w.mean()}, Mean temperature term: {temperature_term.mean()}, Temperature: {temperature}")
+                    f"Sample: {i}, Epoch: {epoch}, Batch: {batch}, Mean likelihood: {log_p_x_g_w.mean()}, Mean temperature term: {temperature_term.mean()}, Temperature: {self._temperature}")
                 if wandb_params is not None and wandb_params["log_wandb"]:
                     wandb.log({wandb_params["name_wandb"] + '/Mean likelihood': log_p_x_g_w.mean(),
                                wandb_params["name_wandb"] + '/Mean temperature term': temperature_term.mean()})
