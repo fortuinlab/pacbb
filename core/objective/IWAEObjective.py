@@ -27,7 +27,7 @@ class IWAEObjective:
 
             # log_loss_i = torch.sum(p_x_g_w, dim=1)
             # log_loss_i = self.criterion(p_x_g_w, target)
-            temperature = 0.0001
+            temperature = 0.00001
             log_loss_i = dists.Categorical(logits=p_x_g_w).log_prob(target)
 
             log_p_w_total = 0
