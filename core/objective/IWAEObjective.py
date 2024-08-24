@@ -27,6 +27,7 @@ class IWAEObjective:
 
             # log_loss_i = torch.sum(p_x_g_w, dim=1)
             # log_loss_i = self.criterion(p_x_g_w, target)
+            temperature = 0.0001
             log_loss_i = dists.Categorical(logits=p_x_g_w).log_prob(target)
 
             log_p_w_total = 0
@@ -56,7 +57,7 @@ class IWAEObjective:
                 else:
                     log_q_w_g_x_total += log_q_w_g_x_weight.sum() + log_q_w_g_x_bias.sum()
 
-            log_loss_i = log_loss_i + log_p_w_total.repeat(len(log_loss_i)) - log_q_w_g_x_total.repeat(len(log_loss_i))
+            log_loss_i = log_loss_i + (log_p_w_total.repeat(len(log_loss_i)) - log_q_w_g_x_total.repeat(len(log_loss_i)))*temperature
             log_losses.append(log_loss_i)
         loss = - (torch.logsumexp(torch.stack(log_losses), dim=0) - np.log(self.n)).mean()
         # loss = -log_losses[0].mean()

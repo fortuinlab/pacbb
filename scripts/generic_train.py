@@ -153,15 +153,19 @@ def main():
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_zeros(model=model,
-                             rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
-                             distribution=GaussianVariable,
-                             requires_grad=False)
+    # prior_prior = from_zeros(model=model,
+    #                          rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
+    #                          distribution=GaussianVariable,
+    #                          requires_grad=False)
+    prior_prior = from_random(model=model,
+                              rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
+                              distribution=GaussianVariable,
+                              requires_grad=False)
     # prior = from_random(model=model,
     #                     rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
     #                     distribution=GaussianVariable,
     #                     requires_grad=True)
-    prior = from_copy(dist=prior_prior, distribution=GaussianVariable)
+    prior = from_copy(dist=prior_prior, distribution=GaussianVariable, requires_grad=True)
     dnn_to_probnn(model, prior, prior_prior)
     model.to(device)
 
