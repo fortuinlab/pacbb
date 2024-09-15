@@ -1,7 +1,7 @@
 log_wandb: false
 mcsamples: 1000
 pmin: 0.00005
-sigma: 0.03
+sigma: 0.01
 factory:
   losses: ['nll_loss', 'scaled_nll_loss', '01_loss']
   metrics: ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric']
@@ -18,7 +18,7 @@ factory:
   prior_objective:
     name: fquad
     params:
-      kl_penalty: 0.001
+      kl_penalty: 0.01
       delta: 0.025
   posterior_objective:
     name: fquad
