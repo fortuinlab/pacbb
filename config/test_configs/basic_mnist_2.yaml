@@ -1,6 +1,6 @@
-log_wandb: false
+log_wandb: true
 mcsamples: 1000
-pmin: 1e-5
+pmin: 0.00005
 sigma: 0.01
 factory:
   losses: ['nll_loss', 'scaled_nll_loss', '01_loss']
@@ -13,7 +13,7 @@ factory:
   model:
     name: nn
     params:
-      input_dim: 32*32*3
+      input_dim: 784
       hidden_dim: 100
       output_dim: 10
   prior_objective:

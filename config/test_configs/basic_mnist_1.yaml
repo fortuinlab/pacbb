@@ -1,6 +1,6 @@
-log_wandb: false
+log_wandb: true
 mcsamples: 1000
-pmin: 1e-5
+pmin: 0.00005
 sigma: 0.03
 factory:
   losses: ['nll_loss', 'scaled_nll_loss', '01_loss']

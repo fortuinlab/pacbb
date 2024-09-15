@@ -1,7 +1,8 @@
+from typing import Dict
+
 import wandb
 import torch
 import logging
-import yaml
 import argparse
 
 from core.split_strategy import PBPSplitStrategy
@@ -18,18 +19,14 @@ from scripts.utils.factory import (LossFactory,
                                    DataLoaderFactory,
                                    ModelFactory,
                                    ObjectiveFactory)
+from scripts.utils.config import load_config, get_wandb_name
 
 logging.basicConfig(level=logging.INFO)
 
-# Function to load the configuration from the YAML file
-def load_config(config_path):
-    with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
-    return config
-
-def main(config):
+def main(config: Dict, config_path: str):
+    print(config_path)
     if config['log_wandb']:
-        wandb.init(project='pbb-framework', config=config)
+        wandb.init(project='pbb-framework', config=config, name=get_wandb_name(config_path))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device ", device)
     # Losses
@@ -187,5 +184,5 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, required=True, help='Path to the YAML config file')
     args = parser.parse_args()
     config = load_config(args.config)
-    main(config)
+    main(config, args.config)
 
