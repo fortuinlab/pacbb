@@ -159,15 +159,15 @@ def main(config):
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
-    # if strategy.test_loader is not None:
-    #     _ = evaluate_metrics(model=model,
-    #                          metrics=metrics,
-    #                          test_loader=strategy.test_loader,
-    #                          num_samples_metric=config["mcsamples"],
-    #                          device=device,
-    #                          pmin=config["pmin"],
-    #                          wandb_params={'log_wandb': config["log_wandb"],
-    #                                        'name_wandb': 'Posterior Evaluation'})
+    if strategy.test_loader is not None:
+        _ = evaluate_metrics(model=model,
+                             metrics=metrics,
+                             test_loader=strategy.test_loader,
+                             num_samples_metric=config["mcsamples"],
+                             device=device,
+                             pmin=config["pmin"],
+                             wandb_params={'log_wandb': config["log_wandb"],
+                                           'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
