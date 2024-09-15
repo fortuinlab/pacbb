@@ -19,9 +19,9 @@ from scripts.utils.factory import (LossFactory,
                                    DataLoaderFactory,
                                    ModelFactory,
                                    ObjectiveFactory)
-from scripts.utils.config import load_config, get_wandb_name
+from scripts.utils.config import load_config, get_wandb_name, setup_logging
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 def main(config: Dict, config_path: str):
     print(config_path)
@@ -184,5 +184,5 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, required=True, help='Path to the YAML config file')
     args = parser.parse_args()
     config = load_config(args.config)
+    setup_logging(args.config)
     main(config, args.config)
-
