@@ -23,7 +23,7 @@ config = {
     'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
-    'sigma': 0.03,
+    'sigma': 0.01,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
@@ -32,37 +32,15 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },
-            # 'model': {'name': 'resnet',
-            #           'params': {'num_channels': 3}
-            #           },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 32*32*3,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            'model': {'name': 'conv',
+            'model': {'name': 'conv15',
                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
-            # 'model': {'name': 'conv15',
-            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
-            #           },
-            # 'data_loader': {'name': 'mnist',
-            #                 'params': {'dataset_path': './data/mnist'}
-            #                 },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 28*28,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            # 'model': {'name': 'conv',
-            #           'params': {'in_channels': 1, 'dataset': 'mnist'}
-            #           },
-            'prior_objective': {'name': 'fquad',
-                                'params': {'kl_penalty': 0.001,
-                                           'delta': 0.025
+            'prior_objective': {'name': 'fclassic',
+                                'params': {'kl_penalty': 0.01,
+                                           'delta': 0.025,
                                            }
                                 },
-            'posterior_objective': {'name': 'fquad',
+            'posterior_objective': {'name': 'fclassic',
                                     'params': {'kl_penalty': 1.0,
                                                'delta': 0.025
                                                }
@@ -83,8 +61,8 @@ config = {
     'split_strategy': {
         'prior_type': 'learnt',
         'train_percent': 1.0,
-        'val_percent': 0.05,
-        'prior_percent': .5,
+        'val_percent': 0.0,
+        'prior_percent': .7,
         'self_certified': True,
     },
     'prior': {
@@ -148,13 +126,14 @@ def main():
     model = model_factory.create(config["factory"]["model"]["name"], **config["factory"]["model"]["params"])
 
     torch.manual_seed(config['dist_init']['seed'])
-    prior_prior = from_random(model=model,
+    prior_prior = from_zeros(model=model,
                              rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
                              distribution=GaussianVariable,
                              requires_grad=False)
-    prior = from_copy(dist=prior_prior,
-                      distribution=GaussianVariable,
-                      requires_grad=True)
+    prior = from_random(model=model,
+                        rho=torch.log(torch.exp(torch.Tensor([config['sigma']])) - 1),
+                        distribution=GaussianVariable,
+                        requires_grad=True)
     dnn_to_probnn(model, prior, prior_prior)
     model.to(device)
 
@@ -191,18 +170,18 @@ def main():
     #                           pmin=config["pmin"],
     #                           wandb_params={'log_wandb': config["log_wandb"],
     #                                         'name_wandb': 'Prior Evaluation'})
-    #
-    # _ = certify_risk(model=model,
-    #                  bounds=bounds,
-    #                  losses=losses,
-    #                  posterior=prior,
-    #                  prior=prior_prior,
-    #                  bound_loader=strategy.bound_loader,
-    #                  num_samples_loss=config["mcsamples"],
-    #                  device=device,
-    #                  pmin=config["pmin"],
-    #                  wandb_params={'log_wandb': config["log_wandb"],
-    #                                'name_wandb': 'Prior Bound'})
+
+    _ = certify_risk(model=model,
+                     bounds=bounds,
+                     losses=losses,
+                     posterior=prior,
+                     prior=prior_prior,
+                     bound_loader=strategy.bound_loader,
+                     num_samples_loss=config["mcsamples"],
+                     device=device,
+                     pmin=config["pmin"],
+                     wandb_params={'log_wandb': config["log_wandb"],
+                                   'name_wandb': 'Prior Bound'})
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -262,4 +241,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

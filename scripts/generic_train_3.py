@@ -23,7 +23,7 @@ config = {
     'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
-    'sigma': 0.01,
+    'sigma': 0.1,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
@@ -67,7 +67,7 @@ config = {
     },
     'prior': {
         'training': {
-            'lr': 0.001,
+            'lr': 0.01,
             'momentum': 0.95,
             'epochs': 100,
             'seed': 1135,

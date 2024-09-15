@@ -23,7 +23,7 @@ config = {
     'log_wandb': True,
     'mcsamples': 1000,
     'pmin': 1e-5,
-    'sigma': 0.1,
+    'sigma': 0.005,
     'factory':
         {
             'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
@@ -36,7 +36,7 @@ config = {
                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
             'prior_objective': {'name': 'fclassic',
-                                'params': {'kl_penalty': 0.01,
+                                'params': {'kl_penalty': 0.001,
                                            'delta': 0.025,
                                            }
                                 },

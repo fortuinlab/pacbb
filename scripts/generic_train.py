@@ -32,37 +32,15 @@ config = {
             'data_loader': {'name': 'cifar10',
                             'params': {'dataset_path': './data/cifar10'}
                             },
-            # 'model': {'name': 'resnet',
-            #           'params': {'num_channels': 3}
-            #           },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 32*32*3,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            'model': {'name': 'conv',
+            'model': {'name': 'conv15',
                       'params': {'in_channels': 3, 'dataset': 'cifar10'}
                       },
-            # 'model': {'name': 'conv15',
-            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
-            #           },
-            # 'data_loader': {'name': 'mnist',
-            #                 'params': {'dataset_path': './data/mnist'}
-            #                 },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 28*28,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            # 'model': {'name': 'conv',
-            #           'params': {'in_channels': 1, 'dataset': 'mnist'}
-            #           },
-            'prior_objective': {'name': 'fquad',
+            'prior_objective': {'name': 'fclassic',
                                 'params': {'kl_penalty': 0.001,
-                                           'delta': 0.025
+                                           'delta': 0.025,
                                            }
                                 },
-            'posterior_objective': {'name': 'fquad',
+            'posterior_objective': {'name': 'fclassic',
                                     'params': {'kl_penalty': 1.0,
                                                'delta': 0.025
                                                }
@@ -83,8 +61,8 @@ config = {
     'split_strategy': {
         'prior_type': 'learnt',
         'train_percent': 1.0,
-        'val_percent': 0.05,
-        'prior_percent': .5,
+        'val_percent': 0.0,
+        'prior_percent': .7,
         'self_certified': True,
     },
     'prior': {
@@ -183,15 +161,15 @@ def main():
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Prior Train'})
 
-    if strategy.test_loader is not None:
-        _  = evaluate_metrics(model=model,
-                              metrics=metrics,
-                              test_loader=strategy.test_loader,
-                              num_samples_metric=config["mcsamples"],
-                              device=device,
-                              pmin=config["pmin"],
-                              wandb_params={'log_wandb': config["log_wandb"],
-                                            'name_wandb': 'Prior Evaluation'})
+    # if strategy.test_loader is not None:
+    #     _  = evaluate_metrics(model=model,
+    #                           metrics=metrics,
+    #                           test_loader=strategy.test_loader,
+    #                           num_samples_metric=config["mcsamples"],
+    #                           device=device,
+    #                           pmin=config["pmin"],
+    #                           wandb_params={'log_wandb': config["log_wandb"],
+    #                                         'name_wandb': 'Prior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,
