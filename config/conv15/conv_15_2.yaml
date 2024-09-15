@@ -1,4 +1,4 @@
-log_wandb: false
+log_wandb: true
 mcsamples: 1000
 pmin: 0.00005
 sigma: 0.01
