@@ -26,7 +26,7 @@ from scripts.utils.config import load_config, get_wandb_name, setup_logging
 def main(config: Dict, config_path: str):
     print(config_path)
     if config['log_wandb']:
-        wandb.init(project='pbb-framework', config=config, name=get_wandb_name(config_path))
+        wandb.init(project='pbb_paper', config=config, name=get_wandb_name(config_path))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device ", device)
     # Losses
