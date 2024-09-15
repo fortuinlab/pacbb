@@ -1,6 +1,8 @@
 import wandb
 import torch
 import logging
+import yaml
+import argparse
 
 from core.split_strategy import PBPSplitStrategy
 from core.distribution.utils import from_copy, from_zeros, from_random
@@ -19,94 +21,13 @@ from scripts.utils.factory import (LossFactory,
 
 logging.basicConfig(level=logging.INFO)
 
-config = {
-    'log_wandb': True,
-    'mcsamples': 1000,
-    'pmin': 1e-5,
-    'sigma': 0.03,
-    'factory':
-        {
-            'losses': ['nll_loss', 'scaled_nll_loss', '01_loss'],
-            'metrics': ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric'],
-            'bounds': ['kl', 'mcallister'],
-            'data_loader': {'name': 'cifar10',
-                            'params': {'dataset_path': './data/cifar10'}
-                            },
-            # 'model': {'name': 'resnet',
-            #           'params': {'num_channels': 3}
-            #           },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 32*32*3,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            'model': {'name': 'conv',
-                      'params': {'in_channels': 3, 'dataset': 'cifar10'}
-                      },
-            # 'model': {'name': 'conv15',
-            #           'params': {'in_channels': 3, 'dataset': 'cifar10'}
-            #           },
-            # 'data_loader': {'name': 'mnist',
-            #                 'params': {'dataset_path': './data/mnist'}
-            #                 },
-            # 'model': {'name': 'nn',
-            #           'params': {'input_dim': 28*28,
-            #                      'hidden_dim': 100,
-            #                      'output_dim': 10}
-            #          },
-            # 'model': {'name': 'conv',
-            #           'params': {'in_channels': 1, 'dataset': 'mnist'}
-            #           },
-            'prior_objective': {'name': 'fquad',
-                                'params': {'kl_penalty': 0.001,
-                                           'delta': 0.025
-                                           }
-                                },
-            'posterior_objective': {'name': 'fquad',
-                                    'params': {'kl_penalty': 1.0,
-                                               'delta': 0.025
-                                               }
-                                    },
-         },
-    'bound': {
-        'delta': 0.025,
-        'delta_test': 0.01,
-    },
-    'split_config': {
-        'seed': 111,
-        'dataset_loader_seed': 112,
-        'batch_size': 250,
-    },
-    'dist_init': {
-        'seed': 110,
-    },
-    'split_strategy': {
-        'prior_type': 'learnt',
-        'train_percent': 1.0,
-        'val_percent': 0.05,
-        'prior_percent': .5,
-        'self_certified': True,
-    },
-    'prior': {
-        'training': {
-            'lr': 0.001,
-            'momentum': 0.95,
-            'epochs': 100,
-            'seed': 1135,
-        }
-    },
-    'posterior': {
-        'training': {
-            'lr': 0.001,
-            'momentum': 0.9,
-            'epochs': 1,
-            'seed': 1135,
-        }
-    }
-}
+# Function to load the configuration from the YAML file
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
-
-def main():
+def main(config):
     if config['log_wandb']:
         wandb.init(project='pbb-framework', config=config)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -261,6 +182,10 @@ def main():
                                    'name_wandb': 'Posterior Bound'})
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run script with a YAML config file")
+    parser.add_argument('--config', type=str, required=True, help='Path to the YAML config file')
+    args = parser.parse_args()
+    config = load_config(args.config)
+    main(config)
 

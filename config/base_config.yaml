@@ -1,0 +1,54 @@
+log_wandb: false
+mcsamples: 1000
+pmin: 1e-5
+sigma: 0.03
+factory:
+  losses: ['nll_loss', 'scaled_nll_loss', '01_loss']
+  metrics: ['accuracy_micro_metric', 'accuracy_macro_metric', 'f1_micro_metric', 'f1_macro_metric']
+  bounds: ['kl', 'mcallister']
+  data_loader:
+    name: cifar10
+    params:
+      dataset_path: ./data/cifar10
+  model:
+    name: conv
+    params:
+      in_channels: 3
+      dataset: cifar10
+  prior_objective:
+    name: fquad
+    params:
+      kl_penalty: 0.001
+      delta: 0.025
+  posterior_objective:
+    name: fquad
+    params:
+      kl_penalty: 1.0
+      delta: 0.025
+bound:
+  delta: 0.025
+  delta_test: 0.01
+split_config:
+  seed: 111
+  dataset_loader_seed: 112
+  batch_size: 250
+dist_init:
+  seed: 110
+split_strategy:
+  prior_type: learnt
+  train_percent: 1.0
+  val_percent: 0.05
+  prior_percent: 0.5
+  self_certified: true
+prior:
+  training:
+    lr: 0.001
+    momentum: 0.95
+    epochs: 100
+    seed: 1135
+posterior:
+  training:
+    lr: 0.001
+    momentum: 0.9
+    epochs: 1
+    seed: 1135
