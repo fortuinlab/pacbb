@@ -1,7 +1,0 @@
-model_name: pbp3
-model_weight_distribution: 'gaussian'
-input_dim: 784  # TODO: can be removed in future
-output_dim: 10
-hidden_dim: 100
-sigma: 0.01
-weight_initialization_method: 'zeros'
