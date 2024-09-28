@@ -11,7 +11,7 @@ factory:
     params:
       dataset_path: ./data/cifar10
   model:
-    name: conv15
+    name: conv
     params:
       in_channels: 3
       dataset: cifar10
