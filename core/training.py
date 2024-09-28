@@ -13,6 +13,11 @@ from core.objective import AbstractObjective
 from core.model import bounded_call
 
 
+def __raise_exception_on_invalid_value(value: torch.Tensor):
+    if value is None or torch.isnan(value).any():
+        raise ValueError(f"Invalid value {value}")
+
+
 def train(model: nn.Module,
           posterior: DistributionT,
           prior: DistributionT,
@@ -41,6 +46,7 @@ def train(model: nn.Module,
             kl = compute_kl(posterior, prior)
             loss = criterion(output, target)
             objective_value = objective.calculate(loss, kl, parameters['num_samples'])
+            __raise_exception_on_invalid_value(objective_value)
             objective_value.backward()
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
