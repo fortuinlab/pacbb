@@ -26,7 +26,7 @@ factory:
       dataset: cifar10
       in_channels: 3
   posterior_objective:
-    name: fquad
+    name: fclassic
     params:
       delta: 0.025
       kl_penalty: 1.0
