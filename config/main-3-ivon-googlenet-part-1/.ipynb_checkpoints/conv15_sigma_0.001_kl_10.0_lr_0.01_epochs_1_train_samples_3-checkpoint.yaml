@@ -31,24 +31,24 @@ factory:
   prior_objective:
     name: bbb
     params:
-      kl_penalty: 0.001
+      kl_penalty: 0.0
 log_wandb: true
 mcsamples: 1000
 pmin: 5.0e-05
 posterior:
   training:
-    epochs: 100
+    epochs: 1
     lr: 0.001
     momentum: 0.9
     seed: 1135
 prior:
   training:
     epochs: 100
-    lr: 0.001
+    lr: 0.01
     momentum: 0.95
     seed: 1135
     train_samples: 3
-sigma: 0.01
+sigma: 0.001
 split_config:
   batch_size: 250
   dataset_loader_seed: 112
