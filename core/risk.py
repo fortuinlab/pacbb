@@ -34,7 +34,7 @@ def certify_risk(model: nn.Module,
 
     # Evaluate bound
     kl = compute_kl(dist1=posterior, dist2=prior)
-    num_samples_bound = len(bound_loader.dataset)
+    num_samples_bound = len(bound_loader.sampler)
 
     result = {}
     for bound_name, bound in bounds.items():
