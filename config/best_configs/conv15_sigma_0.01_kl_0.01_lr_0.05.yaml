@@ -21,33 +21,35 @@ factory:
   - f1_micro_metric
   - f1_macro_metric
   model:
-    name: googlenet
+    name: conv15
     params:
-      num_channels: 3
+      dataset: cifar10
+      in_channels: 3
   posterior_objective:
-    name: bbb
+    name: fclassic
     params:
-      kl_penalty: 10.0
+      delta: 0.025
+      kl_penalty: 1.0
   prior_objective:
-    name: bbb
+    name: fclassic
     params:
-      kl_penalty: 0.001
+      delta: 0.025
+      kl_penalty: 0.01
 log_wandb: true
 mcsamples: 1000
 pmin: 5.0e-05
 posterior:
   training:
-    epochs: 100
+    epochs: 1
     lr: 0.001
     momentum: 0.9
     seed: 1135
 prior:
   training:
     epochs: 100
-    lr: 0.001
+    lr: 0.05
     momentum: 0.95
     seed: 1135
-    train_samples: 3
 sigma: 0.01
 split_config:
   batch_size: 250
