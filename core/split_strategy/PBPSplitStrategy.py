@@ -378,6 +378,18 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     def split(
         self, dataset_loader: Union[MNISTLoader, CIFAR10Loader], split_config: Dict
     ) -> None:
+        import pickle
+        with open('/Users/firossk/PycharmProjects/pacbayespriors/data/posterior_loader.pickle', 'rb') as f:
+            self.posterior_loader = pickle.load(f)
+        with open('/Users/firossk/PycharmProjects/pacbayespriors/data/bound_loader.pickle', 'rb') as f:
+            self.bound_loader = pickle.load(f)
+        with open('/Users/firossk/PycharmProjects/pacbayespriors/data/test_loader.pickle', 'rb') as f:
+            self.test_loader = pickle.load(f)
+        with open('/Users/firossk/PycharmProjects/pacbayespriors/data/prior_loader.pickle', 'rb') as f:
+            self.prior_loader = pickle.load(f)
+        with open('/Users/firossk/PycharmProjects/pacbayespriors/data/bound_loader_1batch.pickle', 'rb') as f:
+            self.bound_loader_1batch = pickle.load(f)
+        return
         dataset_loader_seed = split_config["dataset_loader_seed"]
         train_dataset, test_dataset = dataset_loader.load(dataset_loader_seed)
 

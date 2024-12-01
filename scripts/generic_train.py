@@ -171,7 +171,7 @@ def main(config: Dict, config_path: str):
                      losses=losses,
                      posterior=posterior,
                      prior=posterior_prior,
-                     bound_loader=strategy.bound_loader,
+                     bound_loader=strategy.bound_loader_1batch,
                      num_samples_loss=config["mcsamples"],
                      device=device,
                      pmin=config["pmin"],
