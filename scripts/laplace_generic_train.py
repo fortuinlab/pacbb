@@ -89,7 +89,7 @@ def main(config: Dict, config_path: str):
                                      'name_wandb': 'Prior Train'})
 
     posterior_prior = from_flat_rho(model=model,
-                                    rho=torch.log(torch.exp(torch.sqrt(la.posterior_variance)) - 1),
+                                    rho=torch.log(torch.exp(la.posterior_variance) - 1),
                                     distribution=GaussianVariable,
                                     requires_grad=False)
     posterior = from_copy(dist=posterior_prior,

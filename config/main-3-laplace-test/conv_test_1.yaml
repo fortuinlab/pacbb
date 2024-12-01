@@ -33,7 +33,7 @@ factory:
     name: bbb
     params:
       kl_penalty: 0.001
-log_wandb: true
+log_wandb: false
 mcsamples: 1000
 pmin: 5.0e-05
 posterior:
@@ -44,8 +44,8 @@ posterior:
     seed: 1135
 prior:
   training:
-    epochs: 100
-    lr: 0.001,
+    epochs: 3
+    lr: 0.001
     momentum: 0.95
     seed: 1135
     train_samples: 3
