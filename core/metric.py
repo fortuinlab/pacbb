@@ -15,7 +15,32 @@ def evaluate_metrics(model: nn.Module,
                      pmin: float = 1e-5,
                      wandb_params: Dict = None,
                      ) -> Dict[str, Tensor]:
-    # Compute average metrics
+    """
+    Evaluate a set of metric functions on a test set with multiple Monte Carlo samples.
+
+    This function uses `compute_losses` under the hood to compute each metric
+    (e.g., NLL, 0-1 error) over `num_samples_metric` samples from the posterior.
+    Optionally logs the results to Weights & Biases (wandb).
+
+    Args:
+        model (nn.Module): A probabilistic neural network model.
+        metrics (Dict[str, Callable]): A dictionary mapping metric names 
+            to metric functions (e.g., {"zero_one": zero_one_loss}).
+        test_loader (DataLoader): DataLoader for the test/validation dataset.
+        num_samples_metric (int): Number of Monte Carlo samples to draw 
+            when evaluating each metric on the test set.
+        device (torch.device): The device (CPU/GPU) to run computations on.
+        pmin (float, optional): A lower bound for probabilities. If specified, 
+            `bounded_call` is applied to model outputs.
+        wandb_params (Dict, optional): Configuration for logging to wandb. 
+            Expects keys:
+            - "log_wandb": bool, whether to log or not
+            - "name_wandb": str, prefix for logging metrics
+
+    Returns:
+        Dict[str, Tensor]: A dictionary mapping each metric name to its average value 
+        across the entire test dataset and all Monte Carlo samples.
+    """
     avg_metrics = compute_losses(model=model,
                                  bound_loader=test_loader,
                                  mc_samples=num_samples_metric,

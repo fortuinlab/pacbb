@@ -35,7 +35,6 @@ def inv_kl(qs, ks):
     Returns:
         float: The computed inversion of the binary KL divergence.
     """
-    # TODO: refactor
     ikl = 0
     izq = qs
     dch = 1 - 1e-10

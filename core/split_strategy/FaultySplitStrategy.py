@@ -11,6 +11,20 @@ from core.split_strategy import PBPSplitStrategy
 
 @dataclass
 class FaultySplitStrategy(PBPSplitStrategy):
+    """
+    A specialized (and potentially buggy) subclass of PBPSplitStrategy that demonstrates
+    alternative splitting logic or partial overlaps between dataset subsets.
+
+    Fields:
+        posterior_loader (DataLoader): DataLoader for posterior training.
+        prior_loader (DataLoader): DataLoader for prior training.
+        val_loader (DataLoader): DataLoader for validation set.
+        test_loader (DataLoader): DataLoader for test set.
+        test_1batch (DataLoader): DataLoader for test set (one big batch).
+        bound_loader (DataLoader): DataLoader for bound evaluation set.
+        bound_loader_1batch (DataLoader): DataLoader for bound evaluation set (one big batch).
+    """
+    
     # Posterior training
     posterior_loader: data.dataloader.DataLoader = None
     # Prior training
@@ -24,6 +38,17 @@ class FaultySplitStrategy(PBPSplitStrategy):
     bound_loader_1batch: data.dataloader.DataLoader = None
     
     def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+        """
+        Initialize the FaultySplitStrategy with user-defined percentages
+        and flags for how to partition the dataset.
+
+        Args:
+            prior_type (str): A string indicating how the prior is handled (e.g. "not_learnt", "learnt").
+            train_percent (float): Fraction of dataset to use for training.
+            val_percent (float): Fraction of dataset to use for validation.
+            prior_percent (float): Fraction of dataset to use for prior training.
+            self_certified (bool): If True, indicates self-certified approach to data splitting.
+        """
         super().__init__(prior_type, train_percent, val_percent, prior_percent, self_certified)
 
     def _split_not_learnt(
@@ -33,6 +58,15 @@ class FaultySplitStrategy(PBPSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split the data for the case when the prior is not learned from data.
+
+        Args:
+            train_dataset (Dataset): The training dataset.
+            test_dataset (Dataset): The test dataset.
+            split_config (Dict): A configuration dictionary containing keys like 'batch_size', 'seed', etc.
+            loader_kwargs (Dict): Additional keyword arguments for DataLoader (e.g., num_workers).
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -77,7 +111,6 @@ class FaultySplitStrategy(PBPSplitStrategy):
         self.test_1batch = torch.utils.data.DataLoader(
             test_dataset, batch_size=test_size, shuffle=True, **loader_kwargs
         )
-        # TODO: can be a bug here because it was =posterior_loader
         self.bound_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_size=batch_size,
@@ -98,6 +131,15 @@ class FaultySplitStrategy(PBPSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split logic when the prior is learned from data and we use a self-certified approach.
+
+        Args:
+            train_dataset (Dataset): The training dataset.
+            test_dataset (Dataset): The test dataset.
+            split_config (Dict): A dictionary of split settings (batch size, seed, etc.).
+            loader_kwargs (Dict): Keyword arguments for DataLoader initialization.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -174,6 +216,15 @@ class FaultySplitStrategy(PBPSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split logic for a learned prior without self-certification.
+
+        Args:
+            train_dataset (Dataset): The training dataset.
+            test_dataset (Dataset): The test dataset.
+            split_config (Dict): Dictionary with split hyperparameters (batch size, seed, etc.).
+            loader_kwargs (Dict): Additional arguments for torch.utils.data.DataLoader.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent

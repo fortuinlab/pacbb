@@ -21,7 +21,48 @@ def certify_risk(model: nn.Module,
                  pmin: float = 1e-5,
                  wandb_params: Dict = None,
                  ) -> Dict[str, Dict[str, Dict[str, Tensor]]]:
-    # Compute average losses
+    """
+    Certify (evaluate) the generalization risk of a probabilistic neural network
+    using one or more PAC-Bayes bounds on a given dataset.
+
+    Steps:
+      1) Compute average losses (e.g., NLL, 0-1 error) via multiple Monte Carlo samples
+         from the posterior (`compute_losses`).
+      2) Calculate the KL divergence between the posterior and prior distributions.
+      3) For each bound in `bounds`, calculate a PAC-Bayes risk bound for each loss in `losses`.
+      4) Optionally log intermediate results (loss, risk) to Weights & Biases (wandb).
+
+    Args:
+        model (nn.Module): The probabilistic neural network used for risk evaluation.
+        bounds (Dict[str, AbstractBound]): A mapping from bound names to bound objects 
+            that implement a PAC-Bayes bound (`AbstractBound`).
+        losses (Dict[str, Callable]): A mapping from loss names to loss functions 
+            (e.g., {"nll": nll_loss, "01": zero_one_loss}).
+        posterior (DistributionT): Posterior distribution of the model parameters.
+        prior (DistributionT): Prior distribution of the model parameters.
+        bound_loader (DataLoader): DataLoader for the dataset on which bounds and losses are computed.
+        num_samples_loss (int): Number of Monte Carlo samples to draw from the posterior
+            for estimating the average losses.
+        device (torch.device): The device (CPU or GPU) to perform computations on.
+        pmin (float, optional): A minimum probability bound for clamping model outputs in log space.
+            Defaults to 1e-5.
+        wandb_params (Dict, optional): Configuration for Weights & Biases logging. Expects keys:
+            - "log_wandb": bool, whether to log
+            - "name_wandb": str, prefix for metric names
+
+    Returns:
+        Dict[str, Dict[str, Dict[str, Tensor]]]: A nested dictionary of the form:
+            {
+              bound_name: {
+                loss_name: {
+                  'risk': risk_value,
+                  'loss': avg_loss_value
+                }
+              }
+            }
+        where `risk_value` is the computed bound on the risk, and `avg_loss_value` is the
+        empirical loss estimate for that loss and bound.
+    """
     avg_losses = compute_losses(model=model,
                                 bound_loader=bound_loader,
                                 mc_samples=num_samples_loss,

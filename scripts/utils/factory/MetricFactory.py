@@ -21,15 +21,6 @@ class MetricFactory(AbstractFactory[Callable]):
                                                                                   num_classes=10, average='macro'))
 
     def create(self, name: str, *args, **kwargs) -> Callable:
-        """
-         A method to create an object.
-
-        Args:
-            name (str): Name of the creator class.
-
-        Returns:
-            T: Created object.
-        """
         creator = self._creators.get(name)
         if not creator:
             raise ValueError(f"Invalid creator: {name}")

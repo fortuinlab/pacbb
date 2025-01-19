@@ -18,7 +18,7 @@ class LaplaceVariable(AbstractVariable):
 
         Args:
             mu (Tensor): The mean of the Laplace distribution.
-            rho (Tensor): TODO of the Laplace distribution.
+            rho (Tensor): rho = log(exp(sigma)-1) of the Laplace distribution.
             mu_requires_grad (bool): Flag indicating whether mu is fixed.
             rho_requires_grad (bool): Flag indicating whether rho is fixed.
         """
