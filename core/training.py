@@ -5,7 +5,6 @@ import wandb
 import torch
 from torch import nn
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
 
 from core.distribution.utils import compute_kl, DistributionT
 from core.objective import AbstractObjective
