@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
 
       # ADJUST THIS: install all dependencies (including pdoc)
-      - run: pip install pdoc==15.0.1
+      - run: pip install -e . && pip install pdoc==15.0.1
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
       - run: pdoc --docformat google core -o docs/
