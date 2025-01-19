@@ -1,7 +1,6 @@
 import math
 from typing import List, Union, Type, Callable, Dict, Tuple, Iterator
 
-import ivon
 import torch
 from torch import nn, Tensor
 
@@ -13,7 +12,7 @@ DistributionT = Dict[LayerNameT, Dict[str, AbstractVariable]]
 
 
 def from_ivon(model: nn.Module,
-              optimizer: ivon.IVON,
+              optimizer: "ivon.IVON",
               distribution: Type[AbstractVariable],
               requires_grad: bool = True,
               get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
