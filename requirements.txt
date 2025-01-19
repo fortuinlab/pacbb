@@ -3,4 +3,4 @@ numpy==1.26.4
 torchvision==0.17.1
 tqdm==4.66.2
 lightning==2.2.1
-wandb==0.16.6
+wandb>=0.16.6

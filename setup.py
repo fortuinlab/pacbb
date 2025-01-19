@@ -21,6 +21,7 @@ setup(
         'torchvision>=0.17.1',
         'tqdm>=4.66.2',
         'lightning>=2.2.1',
+        'wandb>=0.16.6',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
