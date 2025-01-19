@@ -112,5 +112,7 @@ Special thanks to **Vincent Fortuin** and **Alex Immer** for their supervision, 
 
 ## Authors
 
-* <h5>Yauheni Mardan</h5> [![Email](https://img.shields.io/badge/Email-yauhenmardan%40gmail.com-blue)](mailto:yauhenmardan@gmail.com)
-* <h5>Maksym Tretiakov</h5> [![Email](https://img.shields.io/badge/Email-maxtretyakov37%40gmail.com-blue)](mailto:maxtretyakov37@gmail.com)
+* **Yauhenii** (Yauheni Mardan)
+
+* **Misipuk** (Maksym Tretiakov)
+

@@ -15,4 +15,10 @@ The `core` package provides foundational components for the PAC-Bayes framework.
 ## Usage
 By assembling the pieces within `core`, you can build, train, and evaluate
 probabilistic neural networks under the PAC-Bayes paradigm.
+
+## Links
+
+- **Documentation**: [https://yauhenii.github.io/pacbb/core.html](https://yauhenii.github.io/pacbb/core.html)
+- **PyPI**: [https://pypi.org/project/pacbb/](https://pypi.org/project/pacbb/)
+- **Source Code**: [https://github.com/yauhenii/pacbb](https://github.com/yauhenii/pacbb)
 """
