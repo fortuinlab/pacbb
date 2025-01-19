@@ -6,7 +6,6 @@ import torch
 from torch.utils import data
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from scripts.utils.dataset.loader import CIFAR10Loader, MNISTLoader
 from core.split_strategy import AbstractSplitStrategy
 
 
@@ -436,7 +435,7 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         )
 
     def split(
-        self, dataset_loader: Union[MNISTLoader, CIFAR10Loader], split_config: Dict
+        self, dataset_loader: Union["MNISTLoader", "CIFAR10Loader"], split_config: Dict
     ) -> None:
         """
         Public method to perform the split operation on a dataset loader,
