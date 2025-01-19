@@ -260,11 +260,14 @@ must be made before assignment on the child.</p>
 
             <div class="docstring"><p>Initialize the LaplaceVariable.</p>
 
-<p>Args:
-    mu (Tensor): The mean of the Laplace distribution.
-    rho (Tensor): TODO of the Laplace distribution.
-    mu_requires_grad (bool): Flag indicating whether mu is fixed.
-    rho_requires_grad (bool): Flag indicating whether rho is fixed.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>mu (Tensor):</strong>  The mean of the Laplace distribution.</li>
+<li><strong>rho (Tensor):</strong>  TODO of the Laplace distribution.</li>
+<li><strong>mu_requires_grad (bool):</strong>  Flag indicating whether mu is fixed.</li>
+<li><strong>rho_requires_grad (bool):</strong>  Flag indicating whether rho is fixed.</li>
+</ul>
 </div>
 
 
@@ -295,8 +298,11 @@ must be made before assignment on the child.</p>
 
             <div class="docstring"><p>Sample from the Laplace distribution.</p>
 
-<p>Returns:
-    Tensor: Sampled values from the Laplace distribution.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tensor: Sampled values from the Laplace distribution.</p>
+</blockquote>
 </div>
 
 
@@ -336,11 +342,17 @@ must be made before assignment on the child.</p>
 
             <div class="docstring"><p>Compute the KL divergence between two Laplace distributions.</p>
 
-<p>Args:
-    other (LaplaceVariable): The other Laplace distribution.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    Tensor: The KL divergence between the two distributions.</p>
+<ul>
+<li><strong>other (LaplaceVariable):</strong>  The other Laplace distribution.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tensor: The KL divergence between the two distributions.</p>
+</blockquote>
 </div>
 
 

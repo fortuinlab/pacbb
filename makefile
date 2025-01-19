@@ -23,3 +23,9 @@ lint:
 	$(lint_path) $(core_path); \
 	$(lint_path) $(scripts_path); \
 	)
+
+.PHONY: docs
+docs:
+	@(\
+	pdoc --docformat google --output-dir docs $(core_path); \
+	)

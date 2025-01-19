@@ -1,9 +1,15 @@
 from setuptools import setup
 
+# Read long description from the README file
+with open('README.md', 'r', encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='pacbb',
     version='0.0.1',
     description='PAC Bayes Bound toolset',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/Yauhenii/pacbb',
     author='Yauheni Mardan, Maksym Tretiakov',
     author_email='yauhenmardan@gmail.com',

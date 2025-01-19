@@ -143,76 +143,101 @@ its own set of filters (of size
   and the second `int` for the width dimension
 </code></pre>
 
-<p>Note:
-    When <code>groups == in_channels</code> and <code>out_channels == K * in_channels</code>,
-    where <code>K</code> is a positive integer, this operation is also known as a "depthwise convolution".</p>
+<h6 id="note">Note:</h6>
 
-<pre><code>In other words, for an input of size \\( (N, C_{in}, L_{in}) \\),
-a depthwise convolution with a depthwise multiplier `K` can be performed with the arguments
-\\( (C_\text{in}=C_\text{in}, C_\text{out}=C_\text{in} \times \text{K}, ..., \text{groups}=C_\text{in}) \\).
+<blockquote>
+  <p>When <code>groups == in_channels</code> and <code>out_channels == K * in_channels</code>,
+  where <code>K</code> is a positive integer, this operation is also known as a "depthwise convolution".</p>
+  
+  <p>In other words, for an input of size \( (N, C_{in}, L_{in}) \),
+  a depthwise convolution with a depthwise multiplier <code>K</code> can be performed with the arguments
+  \( (C_\text{in}=C_\text{in}, C_\text{out}=C_\text{in} \times \text{K}, ..., \text{groups}=C_\text{in}) \).</p>
+</blockquote>
+
+<h6 id="note-2">Note:</h6>
+
+<blockquote>
+  <p>In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting <code>torch.backends.cudnn.deterministic = True</code>. See :doc:<code>/notes/randomness</code> for more information.</p>
+</blockquote>
+
+<h6 id="note-3">Note:</h6>
+
+<blockquote>
+  <p><code>padding='valid'</code> is the same as no padding. <code>padding='same'</code> pads
+  the input so the output has the shape as the input. However, this mode
+  doesn't support any stride values other than 1.</p>
+</blockquote>
+
+<h6 id="note-4">Note:</h6>
+
+<blockquote>
+  <p>This module supports complex data types i.e. <code>complex32, complex64, complex128</code>.</p>
+</blockquote>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>in_channels (int):</strong>  Number of channels in the input image</li>
+<li><strong>out_channels (int):</strong>  Number of channels produced by the convolution</li>
+<li><strong>kernel_size (int or tuple):</strong>  Size of the convolving kernel</li>
+<li><strong>stride (int or tuple, optional):</strong>  Stride of the convolution. Default: 1</li>
+<li><strong>padding (int, tuple or str, optional):</strong>  Padding added to all four sides of
+the input. Default: 0</li>
+<li><strong>padding_mode (str, optional):</strong>  <code>'zeros'</code>, <code>'reflect'</code>,
+<code>'replicate'</code> or <code>'circular'</code>. Default: <code>'zeros'</code></li>
+<li><strong>dilation (int or tuple, optional):</strong>  Spacing between kernel elements. Default: 1</li>
+<li><strong>groups (int, optional):</strong>  Number of blocked connections from input
+channels to output channels. Default: 1</li>
+<li><strong>bias (bool, optional):</strong>  If <code>True</code>, adds a learnable bias to the
+output. Default: <code>True</code></li>
+</ul>
+
+<h6 id="shape">Shape:</h6>
+
+<blockquote>
+  <ul>
+  <li>Input: \( (N, C_{in}, H_{in}, W_{in}) \) or \( (C_{in}, H_{in}, W_{in}) \)</li>
+  <li><p>Output: \( (N, C_{out}, H_{out}, W_{out}) \) or \( (C_{out}, H_{out}, W_{out}) \), where</p>
+  
+  <p>$$H_{out} = \left\lfloor\frac{H_{in}  + 2 \times \text{padding}[0] - \text{dilation}[0]
+      \times (\text{kernel_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor$$</p>
+  
+  <p>$$W_{out} = \left\lfloor\frac{W_{in}  + 2 \times \text{padding}[1] - \text{dilation}[1]
+      \times (\text{kernel_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor$$</p></li>
+  </ul>
+</blockquote>
+
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>weight (Tensor):</strong>  the learnable weights of the module of shape
+\( (\text{out_channels}, \frac{\text{in_channels}}{\text{groups}}, \)
+\( \text{kernel_size[0]}, \text{kernel_size[1]}) \).
+The values of these weights are sampled from
+\( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
+\( k = \frac{groups}{C_\text{in} * \prod_{i=0}^{1}\text{kernel_size}[i]} \)</li>
+<li><strong>bias (Tensor):</strong>    the learnable bias of the module of shape
+(out_channels). If <code><a href="#ProbConv2d.bias">bias</a></code> is <code>True</code>,
+then the values of these weights are
+sampled from \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
+\( k = \frac{groups}{C_\text{in} * \prod_{i=0}^{1}\text{kernel_size}[i]} \)</li>
+</ul>
+
+<h6 id="examples">Examples:</h6>
+
+<blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With square kernels and equal stride</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">33</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># non-square kernels and unequal stride and with padding</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">33</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># non-square kernels and unequal stride and with padding and dilation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">33</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dilation</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
 </code></pre>
-
-<p>Note:
-    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting <code>torch.backends.cudnn.deterministic = True</code>. See :doc:<code>/notes/randomness</code> for more information.</p>
-
-<p>Note:
-    <code>padding='valid'</code> is the same as no padding. <code>padding='same'</code> pads
-    the input so the output has the shape as the input. However, this mode
-    doesn't support any stride values other than 1.</p>
-
-<p>Note:
-    This module supports complex data types i.e. <code>complex32, complex64, complex128</code>.</p>
-
-<p>Args:
-    in_channels (int): Number of channels in the input image
-    out_channels (int): Number of channels produced by the convolution
-    kernel_size (int or tuple): Size of the convolving kernel
-    stride (int or tuple, optional): Stride of the convolution. Default: 1
-    padding (int, tuple or str, optional): Padding added to all four sides of
-        the input. Default: 0
-    padding_mode (str, optional): <code>'zeros'</code>, <code>'reflect'</code>,
-        <code>'replicate'</code> or <code>'circular'</code>. Default: <code>'zeros'</code>
-    dilation (int or tuple, optional): Spacing between kernel elements. Default: 1
-    groups (int, optional): Number of blocked connections from input
-        channels to output channels. Default: 1
-    bias (bool, optional): If <code>True</code>, adds a learnable bias to the
-        output. Default: <code>True</code></p>
-
-<p>Shape:
-    - Input: \( (N, C_{in}, H_{in}, W_{in}) \) or \( (C_{in}, H_{in}, W_{in}) \)
-    - Output: \( (N, C_{out}, H_{out}, W_{out}) \) or \( (C_{out}, H_{out}, W_{out}) \), where</p>
-
-<pre><code>  $$H_{out} = \left\lfloor\frac{H_{in}  + 2 \times \text{padding}[0] - \text{dilation}[0]
-      \times (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor$$
-
-  $$W_{out} = \left\lfloor\frac{W_{in}  + 2 \times \text{padding}[1] - \text{dilation}[1]
-      \times (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor$$
-</code></pre>
-
-<p>Attributes:
-    weight (Tensor): the learnable weights of the module of shape
-        \( (\text{out_channels}, \frac{\text{in_channels}}{\text{groups}}, \)
-        \( \text{kernel_size[0]}, \text{kernel_size[1]}) \).
-        The values of these weights are sampled from
-        \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
-        \( k = \frac{groups}{C_\text{in} * \prod_{i=0}^{1}\text{kernel_size}[i]} \)
-    bias (Tensor):   the learnable bias of the module of shape
-        (out_channels). If <code><a href="#ProbConv2d.bias">bias</a></code> is <code>True</code>,
-        then the values of these weights are
-        sampled from \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
-        \( k = \frac{groups}{C_\text{in} * \prod_{i=0}^{1}\text{kernel_size}[i]} \)</p>
-
-<p>Examples:</p>
-
-<pre><code>&gt;&gt;&gt; # With square kernels and equal stride
-&gt;&gt;&gt; m = nn.Conv2d(16, 33, 3, stride=2)
-&gt;&gt;&gt; # non-square kernels and unequal stride and with padding
-&gt;&gt;&gt; m = nn.Conv2d(16, 33, (3, 5), stride=(2, 1), padding=(4, 2))
-&gt;&gt;&gt; # non-square kernels and unequal stride and with padding and dilation
-&gt;&gt;&gt; m = nn.Conv2d(16, 33, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1))
-&gt;&gt;&gt; input = torch.randn(20, 16, 50, 100)
-&gt;&gt;&gt; output = m(input)
-</code></pre>
+  </div>
+</blockquote>
 </div>
 
 

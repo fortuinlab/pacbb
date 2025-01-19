@@ -98,27 +98,38 @@
 
 <p>On certain ROCm devices, when using float16 inputs this module will use :ref:<code>different precision&lt;fp16_on_mi200&gt;</code> for backward.</p>
 
-<p>Args:
-    in_features: size of each input sample
-    out_features: size of each output sample
-    bias: If set to <code>False</code>, the layer will not learn an additive bias.
-        Default: <code>True</code></p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Shape:
-    - Input: \( (<em>, H_{in}) \) where \( * \) means any number of
-      dimensions including none and \( H_{in} = \text{in_features} \).
-    - Output: \( (</em>, H_{out}) \) where all but the last dimension
-      are the same shape as the input and \( H_{out} = \text{out_features} \).</p>
+<ul>
+<li><strong>in_features:</strong>  size of each input sample</li>
+<li><strong>out_features:</strong>  size of each output sample</li>
+<li><strong>bias:</strong>  If set to <code>False</code>, the layer will not learn an additive bias.
+Default: <code>True</code></li>
+</ul>
 
-<p>Attributes:
-    weight: the learnable weights of the module of shape
-        \( (\text{out_features}, \text{in_features}) \). The values are
-        initialized from \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \), where
-        \( k = \frac{1}{\text{in_features}} \)
-    bias:   the learnable bias of the module of shape \( (\text{out_features}) \).
-            If <code>bias</code> is <code>True</code>, the values are initialized from
-            \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
-            \( k = \frac{1}{\text{in_features}} \)</p>
+<h6 id="shape">Shape:</h6>
+
+<blockquote>
+  <ul>
+  <li>Input: \( (*, H_{in}) \) where \( * \) means any number of
+  dimensions including none and \( H_{in} = \text{in_features} \).</li>
+  <li>Output: \( (*, H_{out}) \) where all but the last dimension
+  are the same shape as the input and \( H_{out} = \text{out_features} \).</li>
+  </ul>
+</blockquote>
+
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>weight:</strong>  the learnable weights of the module of shape
+\( (\text{out_features}, \text{in_features}) \). The values are
+initialized from \( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \), where
+\( k = \frac{1}{\text{in_features}} \)</li>
+<li><strong>bias:</strong>    the learnable bias of the module of shape \( (\text{out_features}) \).
+If <code>bias</code> is <code>True</code>, the values are initialized from
+\( \mathcal{U}(-\sqrt{k}, \sqrt{k}) \) where
+\( k = \frac{1}{\text{in_features}} \)</li>
+</ul>
 
 <p>Examples::</p>
 

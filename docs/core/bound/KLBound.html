@@ -210,15 +210,21 @@
 
             <div class="docstring"><p>Calculates the PAC Bayes bound.</p>
 
-<p>Args:
-    avg_loss (float): The loss averaged using Monte Carlo sampling.
-    kl (Union[Tensor, float]): The Kullback-Leibler divergence between prior and posterior distributions.
-    num_samples_bound (int): The number of data samples in the bound dataset.
-    num_samples_loss (int): The number of Monte Carlo samples.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    Tuple[Union[Tensor, float], Union[Tensor, float]]:
-        A tuple containing the calculated PAC Bayes bound and the upper bound of empirical risk.</p>
+<ul>
+<li><strong>avg_loss (float):</strong>  The loss averaged using Monte Carlo sampling.</li>
+<li><strong>kl (Union[Tensor, float]):</strong>  The Kullback-Leibler divergence between prior and posterior distributions.</li>
+<li><strong>num_samples_bound (int):</strong>  The number of data samples in the bound dataset.</li>
+<li><strong>num_samples_loss (int):</strong>  The number of Monte Carlo samples.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tuple[Union[Tensor, float], Union[Tensor, float]]:
+      A tuple containing the calculated PAC Bayes bound and the upper bound of empirical risk.</p>
+</blockquote>
 </div>
 
 

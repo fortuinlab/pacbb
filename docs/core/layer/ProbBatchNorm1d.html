@@ -194,26 +194,34 @@ new observed value.</p>
 <p>Because the Batch Normalization is done over the <code>C</code> dimension, computing statistics
 on <code>(N, L)</code> slices, it's common terminology to call this Temporal Batch Normalization.</p>
 
-<p>Args:
-    num_features: number of features or channels \( C \) of the input
-    eps: a value added to the denominator for numerical stability.
-        Default: 1e-5
-    momentum: the value used for the running_mean and running_var
-        computation. Can be set to <code>None</code> for cumulative moving average
-        (i.e. simple average). Default: 0.1
-    affine: a boolean value that when set to <code>True</code>, this module has
-        learnable affine parameters. Default: <code>True</code>
-    track_running_stats: a boolean value that when set to <code>True</code>, this
-        module tracks the running mean and variance, and when set to <code>False</code>,
-        this module does not track such statistics, and initializes statistics
-        buffers <code>running_mean</code> and <code>running_var</code> as <code>None</code>.
-        When these buffers are <code>None</code>, this module always uses batch statistics.
-        in both training and eval modes. Default: <code>True</code></p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Shape:
-    - Input: \( (N, C) \) or \( (N, C, L) \), where \( N \) is the batch size,
-      \( C \) is the number of features or channels, and \( L \) is the sequence length
-    - Output: \( (N, C) \) or \( (N, C, L) \) (same shape as input)</p>
+<ul>
+<li><strong>num_features:</strong>  number of features or channels \( C \) of the input</li>
+<li><strong>eps:</strong>  a value added to the denominator for numerical stability.
+Default: 1e-5</li>
+<li><strong>momentum:</strong>  the value used for the running_mean and running_var
+computation. Can be set to <code>None</code> for cumulative moving average
+(i.e. simple average). Default: 0.1</li>
+<li><strong>affine:</strong>  a boolean value that when set to <code>True</code>, this module has
+learnable affine parameters. Default: <code>True</code></li>
+<li><strong>track_running_stats:</strong>  a boolean value that when set to <code>True</code>, this
+module tracks the running mean and variance, and when set to <code>False</code>,
+this module does not track such statistics, and initializes statistics
+buffers <code>running_mean</code> and <code>running_var</code> as <code>None</code>.
+When these buffers are <code>None</code>, this module always uses batch statistics.
+in both training and eval modes. Default: <code>True</code></li>
+</ul>
+
+<h6 id="shape">Shape:</h6>
+
+<blockquote>
+  <ul>
+  <li>Input: \( (N, C) \) or \( (N, C, L) \), where \( N \) is the batch size,
+  \( C \) is the number of features or channels, and \( L \) is the sequence length</li>
+  <li>Output: \( (N, C) \) or \( (N, C, L) \) (same shape as input)</li>
+  </ul>
+</blockquote>
 
 <p>Examples::</p>
 

@@ -233,11 +233,14 @@
 
             <div class="docstring"><p>Initialize the GaussianVariable.</p>
 
-<p>Args:
-    mu (Tensor): The mean of the Gaussian distribution.
-    rho (Tensor): TODO of the Gaussian distribution.
-    mu_requires_grad (bool): Flag indicating whether mu is fixed.
-    rho_requires_grad (bool): Flag indicating whether rho is fixed.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>mu (Tensor):</strong>  The mean of the Gaussian distribution.</li>
+<li><strong>rho (Tensor):</strong>  TODO of the Gaussian distribution.</li>
+<li><strong>mu_requires_grad (bool):</strong>  Flag indicating whether mu is fixed.</li>
+<li><strong>rho_requires_grad (bool):</strong>  Flag indicating whether rho is fixed.</li>
+</ul>
 </div>
 
 
@@ -268,8 +271,11 @@
 
             <div class="docstring"><p>Sample from the Gaussian distribution.</p>
 
-<p>Returns:
-    Tensor: Sampled values from the Gaussian distribution.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tensor: Sampled values from the Gaussian distribution.</p>
+</blockquote>
 </div>
 
 
@@ -308,11 +314,17 @@
 
             <div class="docstring"><p>Compute the KL divergence between two Gaussian distributions.</p>
 
-<p>Args:
-    other (GaussianVariable): The other Gaussian distribution.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    Tensor: The KL divergence between the two distributions.</p>
+<ul>
+<li><strong>other (GaussianVariable):</strong>  The other Gaussian distribution.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tensor: The KL divergence between the two distributions.</p>
+</blockquote>
 </div>
 
 

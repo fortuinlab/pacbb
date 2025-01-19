@@ -156,17 +156,23 @@
 
             <div class="docstring"><p>Abstract PAC bound class for evaluating risk certificates.</p>
 
-<p>Args:
-    bound_delta (float): Confidence level over random data samples.
-        It represents the probability that the upper bound of the PAC bound holds.
-    loss_delta (float): Confidence level over random weight samples.
-        It represents the probability that the upper bound of empirical loss holds.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>bound_delta (float):</strong>  Confidence level over random data samples.
+It represents the probability that the upper bound of the PAC bound holds.</li>
+<li><strong>loss_delta (float):</strong>  Confidence level over random weight samples.
+It represents the probability that the upper bound of empirical loss holds.</li>
+</ul>
 
 <p>Overall probability is (1 - loss_bound) - bound_delta.</p>
 
-<p>Attributes:
-    _bound_delta (float): Confidence level over random data samples.
-    _loss_delta (float): Confidence level over random weight samples.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>_bound_delta (float):</strong>  Confidence level over random data samples.</li>
+<li><strong>_loss_delta (float):</strong>  Confidence level over random weight samples.</li>
+</ul>
 </div>
 
 
@@ -201,13 +207,19 @@
 
             <div class="docstring"><p>Calculates the PAC Bayes bound.</p>
 
-<p>Args:
-    <em>args: Variable length argument list.
-    *</em>kwargs: Arbitrary keyword arguments.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    Tuple[Union[Tensor, float], Union[Tensor, float]]:
-        A tuple containing the calculated PAC bound and the upper bound of empirical risk.</p>
+<ul>
+<li><strong>*args:</strong>  Variable length argument list.</li>
+<li><strong>**kwargs:</strong>  Arbitrary keyword arguments.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tuple[Union[Tensor, float], Union[Tensor, float]]:
+      A tuple containing the calculated PAC bound and the upper bound of empirical risk.</p>
+</blockquote>
 </div>
 
 
