@@ -1,14 +1,18 @@
 """
+## Overview
 The `core` package provides foundational components for the PAC-Bayes framework.
 
-It includes:
-  - Subpackages for distribution modeling (`distribution/`),
-    probabilistic layers (`layer/`), PAC-Bayes bounds (`bound/`),
-    objectives (`objective/`), data splitting strategies (`split_strategy/`),
-    and general utilities (`utils/`).
-  - Higher-level modules (`loss.py`, `metric.py`, `model.py`, `risk.py`,
-    `training.py`) that stitch these components together.
+## Subpackages and Modules
+- **distribution/** for modeling probability distributions over NN parameters
+- **layer/** for probabilistic neural network layers
+- **bound/** for PAC-Bayes bounds
+- **objective/** for combining empirical loss and KL terms
+- **split_strategy/** for partitioning datasets (prior/posterior/bound)
+- **utils/** for miscellaneous helpers
+- Higher-level modules (*loss.py*, *metric.py*, *model.py*, *risk.py*, *training.py*)
+  that stitch these components together.
 
-By assembling the pieces within `core`, users can build, train, and evaluate
+## Usage
+By assembling the pieces within `core`, you can build, train, and evaluate
 probabilistic neural networks under the PAC-Bayes paradigm.
 """

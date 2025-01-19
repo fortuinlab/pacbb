@@ -1,14 +1,15 @@
 """
-The `split_strategy` subpackage defines how datasets are split among
-prior training, posterior training, bound evaluation, and validation/testing.
+## Overview
+Defines how to split datasets into parts for prior training, posterior 
+training, bound evaluation, validation, and testing in PAC-Bayes pipelines.
 
-It includes:
-  - `AbstractSplitStrategy` as an interface,
-  - `PBPSplitStrategy`, `FaultySplitStrategy`, or other implementations
-    that partition data for different PAC-Bayes workflows.
+## Contents
+- **AbstractSplitStrategy**: The base interface
+- **PBPSplitStrategy, FaultySplitStrategy**: Concrete implementations 
+  to partition data for different training/evaluation scenarios
 
-Use these strategies to ensure clean separation of data and avoid leakage
-between prior, posterior, and bound sets.
+Use these strategies to ensure data for prior and posterior does not overlap 
+and to reserve a portion for bound computation.
 """
 
 from core.split_strategy.AbstractSplitStrategy import AbstractSplitStrategy

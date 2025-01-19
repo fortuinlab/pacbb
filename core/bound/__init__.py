@@ -1,12 +1,13 @@
 """
-The `bound` subpackage contains classes and methods for computing PAC-Bayes bounds.
+## Overview
+This subpackage contains classes and functions for computing PAC-Bayes bounds.
 
-These include:
-  - Concrete implementations of bounds (e.g., KLBound, McAllisterBound).
-  - General interfaces or base classes, if any, for extending new bounding approaches.
+## Contents
+- **Concrete bounds** like KLBound, McAllisterBound
+- **Interfaces** or base classes for creating custom bounds
 
-Use these bounds to certify generalization risk after training a probabilistic
-neural network.
+Use these bounds to estimate or certify generalization risk after training a 
+probabilistic neural network.
 """
 
 from core.bound.AbstractBound import AbstractBound

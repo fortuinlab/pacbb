@@ -1,13 +1,14 @@
 """
-The `objective` subpackage holds various PAC-Bayes training objectives.
+## Overview
+Hosts a variety of PAC-Bayes training objectives that combine empirical 
+loss and KL divergence in different ways.
 
-Included classes:
-  - `AbstractObjective` (interface)
-  - `BBBObjective`, `FClassicObjective`, `FQuadObjective`, `McAllisterObjective`,
-    and `TolstikhinObjective`.
+## Contents
+- **AbstractObjective**: A base interface 
+- **BBBObjective, FClassicObjective, FQuadObjective, McAllisterObjective, TolstikhinObjective**
 
-Each objective combines empirical loss with a KL term (and additional factors)
-to minimize a PAC-Bayes bound during training.
+By choosing an appropriate objective, you can guide training to minimize 
+a PAC-Bayes bound on the model’s risk.
 """
 
 from core.objective.AbstractObjective import AbstractObjective

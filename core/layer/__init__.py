@@ -1,15 +1,17 @@
 """
-The `layer` subpackage contains probabilistic layer definitions and related utilities.
+## Overview
+Contains probabilistic versions of common neural network layers and the 
+infrastructure to attach distributions to them.
 
-Highlights:
-  - `AbstractProbLayer` base class, enabling weight/bias sampling via posterior distributions.
-  - Probabilistic versions of PyTorch layers (e.g., `ProbConv2d`, `ProbLinear`).
-  - Helper methods for layer introspection (`utils.py`).
+## Contents
+- **AbstractProbLayer**: A base class managing probabilistic_mode and sampling
+- **ProbConv2d, ProbLinear, ProbBatchNorm1d, ProbBatchNorm2d**: 
+  Probabilistic layers derived from PyTorch
+- **utils.py** for layer inspection and traversal
 
-These layers replace deterministic operations with sampling, enabling Bayesian
-inference under the PAC-Bayes framework.
+These layers replace deterministic parameters with sampled ones, 
+supporting Bayesian inference under the PAC-Bayes framework.
 """
-
 
 from core.layer.AbstractProbLayer import AbstractProbLayer
 from core.layer.ProbLinear import ProbLinear
