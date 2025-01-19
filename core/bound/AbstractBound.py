@@ -31,8 +31,8 @@ class AbstractBound(ABC):
         Calculates the PAC Bayes bound.
 
         Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+            args: Variable length argument list.
+            kwargs: Arbitrary keyword arguments.
 
         Returns:
             Tuple[Union[Tensor, float], Union[Tensor, float]]:

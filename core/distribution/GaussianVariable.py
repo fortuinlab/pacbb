@@ -6,7 +6,7 @@ from core.distribution import AbstractVariable
 
 class GaussianVariable(AbstractVariable):
     """
-    Represents a Gaussian random variable with mean mu and TODO rho.
+    Represents a Gaussian random variable with mean mu and rho.
     """
 
     def __init__(
@@ -22,7 +22,7 @@ class GaussianVariable(AbstractVariable):
 
         Args:
             mu (Tensor): The mean of the Gaussian distribution.
-            rho (Tensor): TODO of the Gaussian distribution.
+            rho (Tensor): rho = log(exp(sigma)-1) where sigma is a standard deviation of the Gaussian distribution.
             mu_requires_grad (bool): Flag indicating whether mu is fixed.
             rho_requires_grad (bool): Flag indicating whether rho is fixed.
         """
