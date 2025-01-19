@@ -21,7 +21,6 @@ from scripts.utils.factory import (LossFactory,
                                    ObjectiveFactory)
 from scripts.utils.config import load_config, get_wandb_name, setup_logging
 
-# logging.basicConfig(level=logging.INFO)
 
 def main(config: Dict, config_path: str):
     print(config_path)
@@ -101,27 +100,27 @@ def main(config: Dict, config_path: str):
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Prior Train'})
 
-    # if strategy.test_loader is not None:
-    #     _  = evaluate_metrics(model=model,
-    #                           metrics=metrics,
-    #                           test_loader=strategy.test_loader,
-    #                           num_samples_metric=config["mcsamples"],
-    #                           device=device,
-    #                           pmin=config["pmin"],
-    #                           wandb_params={'log_wandb': config["log_wandb"],
-    #                                         'name_wandb': 'Prior Evaluation'})
+    if strategy.test_loader is not None:
+        _  = evaluate_metrics(model=model,
+                              metrics=metrics,
+                              test_loader=strategy.test_loader,
+                              num_samples_metric=config["mcsamples"],
+                              device=device,
+                              pmin=config["pmin"],
+                              wandb_params={'log_wandb': config["log_wandb"],
+                                            'name_wandb': 'Prior Evaluation'})
 
-    # _ = certify_risk(model=model,
-    #                  bounds=bounds,
-    #                  losses=losses,
-    #                  posterior=prior,
-    #                  prior=prior_prior,
-    #                  bound_loader=strategy.bound_loader,
-    #                  num_samples_loss=config["mcsamples"],
-    #                  device=device,
-    #                  pmin=config["pmin"],
-    #                  wandb_params={'log_wandb': config["log_wandb"],
-    #                                'name_wandb': 'Prior Bound'})
+    _ = certify_risk(model=model,
+                     bounds=bounds,
+                     losses=losses,
+                     posterior=prior,
+                     prior=prior_prior,
+                     bound_loader=strategy.bound_loader,
+                     num_samples_loss=config["mcsamples"],
+                     device=device,
+                     pmin=config["pmin"],
+                     wandb_params={'log_wandb': config["log_wandb"],
+                                   'name_wandb': 'Prior Bound'})
 
     posterior_prior = from_copy(dist=prior,
                                 distribution=GaussianVariable,
@@ -156,15 +155,15 @@ def main(config: Dict, config_path: str):
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
-    # if strategy.test_loader is not None:
-    #     _ = evaluate_metrics(model=model,
-    #                          metrics=metrics,
-    #                          test_loader=strategy.test_loader,
-    #                          num_samples_metric=config["mcsamples"],
-    #                          device=device,
-    #                          pmin=config["pmin"],
-    #                          wandb_params={'log_wandb': config["log_wandb"],
-    #                                        'name_wandb': 'Posterior Evaluation'})
+    if strategy.test_loader is not None:
+        _ = evaluate_metrics(model=model,
+                             metrics=metrics,
+                             test_loader=strategy.test_loader,
+                             num_samples_metric=config["mcsamples"],
+                             device=device,
+                             pmin=config["pmin"],
+                             wandb_params={'log_wandb': config["log_wandb"],
+                                           'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,

@@ -22,8 +22,6 @@ from scripts.utils.factory import (LossFactory,
 from scripts.utils.training import train_ivon
 from scripts.utils.config import load_config, get_wandb_name, setup_logging
 
-# logging.basicConfig(level=logging.INFO)
-
 
 def main(config: Dict, config_path: str):
     if config['log_wandb']:
@@ -123,15 +121,15 @@ def main(config: Dict, config_path: str):
           wandb_params={'log_wandb': config["log_wandb"],
                         'name_wandb': 'Posterior Train'})
 
-    # if strategy.test_loader is not None:
-    #     _ = evaluate_metrics(model=model,
-    #                          metrics=metrics,
-    #                          test_loader=strategy.test_loader,
-    #                          num_samples_metric=config["mcsamples"],
-    #                          device=device,
-    #                          pmin=config["pmin"],
-    #                          wandb_params={'log_wandb': config["log_wandb"],
-    #                                        'name_wandb': 'Posterior Evaluation'})
+    if strategy.test_loader is not None:
+        _ = evaluate_metrics(model=model,
+                             metrics=metrics,
+                             test_loader=strategy.test_loader,
+                             num_samples_metric=config["mcsamples"],
+                             device=device,
+                             pmin=config["pmin"],
+                             wandb_params={'log_wandb': config["log_wandb"],
+                                           'name_wandb': 'Posterior Evaluation'})
 
     _ = certify_risk(model=model,
                      bounds=bounds,

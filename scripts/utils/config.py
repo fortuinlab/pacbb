@@ -43,7 +43,7 @@ def setup_logging(config_path: str, logging_dir: str = 'logs'):
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.FileHandler(log_file_path, mode='w'),
-            logging.StreamHandler()  # To log in real-time in console too
+            logging.StreamHandler()
         ]
     )
 

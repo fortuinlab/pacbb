@@ -13,15 +13,6 @@ class LossFactory(AbstractFactory[Callable]):
         self.register_creator("01_loss", zero_one_loss)
 
     def create(self, name: str, *args, **kwargs) -> Callable:
-        """
-         A method to create an object.
-
-        Args:
-            name (str): Name of the creator class.
-
-        Returns:
-            T: Created object.
-        """
         creator = self._creators.get(name)
         if not creator:
             raise ValueError(f"Invalid creator: {name}")
