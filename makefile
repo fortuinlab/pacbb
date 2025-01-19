@@ -5,28 +5,27 @@ python_path = $(env_path)/bin/python3.11
 black_path = $(env_path)/bin/black
 isort_path = $(env_path)/bin/isort
 lint_path = $(env_path)/bin/pylint
-pytest_path = $(env_path)/bin/pytest
 core_path = core
-test_path = test
+scripts_path = scripts
 
 .PHONY: format
 format:
 	@(\
 	$(black_path) $(core_path); \
 	$(isort_path) $(core_path) --skip __init__.py; \
-	$(black_path) $(test_path); \
-	$(isort_path) $(test_path) --skip __init__.py; \
+	$(black_path) $(scripts_path); \
+	$(isort_path) $(scripts_path) --skip __init__.py; \
 	)
 
 .PHONY: lint
 lint:
 	@(\
 	$(lint_path) $(core_path); \
-	$(lint_path) $(test_path); \
+	$(lint_path) $(scripts_path); \
 	)
 
-.PHONY: test
-test:
+.PHONY: docs
+docs:
 	@(\
-	$(pytest_path) $(test_path); \
+	pdoc --docformat google --output-dir docs $(core_path); \
 	)
