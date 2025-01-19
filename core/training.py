@@ -2,7 +2,6 @@ from typing import Dict, Any
 import logging
 import wandb
 
-import ivon
 import torch
 from torch import nn
 from tqdm import tqdm
