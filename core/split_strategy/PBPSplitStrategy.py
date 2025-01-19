@@ -12,6 +12,22 @@ from core.split_strategy import AbstractSplitStrategy
 
 @dataclass
 class PBPSplitStrategy(AbstractSplitStrategy):
+    """
+    A split strategy implementing a Prior-Posterior-Bound (PBP) partition of the dataset.
+
+    This strategy supports data splits for:
+      - Posterior training
+      - Prior training
+      - Validation
+      - Test
+      - Bound evaluation (data for calculating PAC-Bayes bounds)
+
+    By changing the internal splitting methods, one can adapt different scenarios such as:
+    - 'not_learnt': The prior is not trained.
+    - 'learnt': The prior is trained on some portion of the data.
+    - 'learnt_with_test': Similar to 'learnt', but includes an explicit test subset.
+    """
+    
     # Posterior training
     posterior_loader: data.dataloader.DataLoader = None
     # Prior training
@@ -25,6 +41,16 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     bound_loader_1batch: data.dataloader.DataLoader = None
 
     def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+        """
+        Initialize the PBPSplitStrategy with user-defined parameters for how to partition the data.
+
+        Args:
+            prior_type (str): Indicates whether the prior is "not_learnt", "learnt", or "learnt_with_test".
+            train_percent (float): Proportion of data used for training.
+            val_percent (float): Proportion of data used for validation.
+            prior_percent (float): Proportion of data used specifically for training the prior.
+            self_certified (bool): If True, indicates self-certified splitting approach.
+        """
         self._prior_type = prior_type
         self._train_percent = train_percent
         self._val_percent = val_percent
@@ -38,6 +64,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split data for the scenario where the prior is not learned (e.g., a fixed prior).
+
+        Args:
+            train_dataset (Dataset): The dataset for training and possibly validation.
+            test_dataset (Dataset): The dataset for testing.
+            split_config (Dict): Dictionary with keys like 'batch_size', 'seed', etc.
+            loader_kwargs (Dict): Extra keyword arguments for DataLoader initialization.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -52,7 +87,6 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         # take fraction of a training dataset
         training_split = int(np.round(training_percent * train_size))
         train_indices = train_indices[:training_split]
-        # TODO: Could be a bug here because of logic change
         if val_percent > 0.0:
             val_split = int(np.round(val_percent * training_split))
             train_idx = train_indices[val_split:]
@@ -84,7 +118,6 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         self.test_1batch = torch.utils.data.DataLoader(
             test_dataset, batch_size=test_size, shuffle=True, **loader_kwargs
         )
-        # TODO: can be a bug here because it was =posterior_loader
         self.bound_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_size=batch_size,
@@ -105,6 +138,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split data when the prior is learned and we use a self-certified approach (all data combined).
+
+        Args:
+            train_dataset (Dataset): Training dataset.
+            test_dataset (Dataset): Test dataset.
+            split_config (Dict): Contains config like 'batch_size', 'seed'.
+            loader_kwargs (Dict): Extra arguments for DataLoader.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -191,6 +233,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Similar to `_split_learnt_self_certified`, but explicitly keeps a separate test set.
+
+        Args:
+            train_dataset (Dataset): Training portion of the data.
+            test_dataset (Dataset): Test portion of the data.
+            split_config (Dict): Contains parameters such as 'batch_size', 'seed', etc.
+            loader_kwargs (Dict): Extra DataLoader arguments.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -294,6 +345,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         split_config: Dict,
         loader_kwargs: Dict,
     ) -> None:
+        """
+        Split data when the prior is learned but not using a self-certified approach.
+
+        Args:
+            train_dataset (Dataset): The training dataset.
+            test_dataset (Dataset): The testing dataset.
+            split_config (Dict): Dictionary with keys (e.g., batch_size, seed, etc.).
+            loader_kwargs (Dict): Additional params for DataLoader creation.
+        """
         batch_size = split_config["batch_size"]
         training_percent = self._train_percent
         val_percent = self._val_percent
@@ -378,6 +438,15 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     def split(
         self, dataset_loader: Union[MNISTLoader, CIFAR10Loader], split_config: Dict
     ) -> None:
+        """
+        Public method to perform the split operation on a dataset loader,
+        setting up DataLoaders for prior, posterior, validation, testing, and bound evaluation.
+
+        Args:
+            dataset_loader (Union[MNISTLoader, CIFAR10Loader]): A dataset loader instance
+                providing `load(dataset_loader_seed)` to retrieve train/test datasets.
+            split_config (Dict): Configuration parameters for splitting (e.g., batch_size, seed).
+        """
         dataset_loader_seed = split_config["dataset_loader_seed"]
         train_dataset, test_dataset = dataset_loader.load(dataset_loader_seed)
 

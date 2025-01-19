@@ -14,6 +14,18 @@ from core.model import bounded_call
 
 
 def __raise_exception_on_invalid_value(value: torch.Tensor):
+    """
+    Raise a ValueError if the given tensor is None or contains NaN values.
+
+    This helper function is used to catch numerical issues that might arise
+    during training (e.g., invalid gradients, extreme KL values).
+
+    Args:
+        value (torch.Tensor): A scalar tensor to check for validity.
+
+    Raises:
+        ValueError: If `value` is None or if any entry is NaN.
+    """
     if value is None or torch.isnan(value).any():
         raise ValueError(f"Invalid value {value}")
 
@@ -28,6 +40,41 @@ def train(model: nn.Module,
           device: torch.device,
           wandb_params: Dict = None,
         ):
+    """
+    Train a probabilistic neural network by optimizing a PAC-Bayes-inspired objective.
+
+    At each iteration:
+      1) Optionally clamp model outputs using `bounded_call` if `pmin` is provided in `parameters`.
+      2) Compute KL divergence between posterior and prior.
+      3) Compute the empirical loss (NLL by default).
+      4) Combine loss and KL via the given `objective`.
+      5) Backpropagate and update model parameters.
+
+    Logs intermediate results (objective, loss, KL) to Python's logger and optionally to wandb.
+
+    Args:
+        model (nn.Module): The probabilistic neural network to train.
+        posterior (DistributionT): The current (learnable) posterior distribution.
+        prior (DistributionT): The (fixed or partially learnable) prior distribution.
+        objective (AbstractObjective): An object that merges empirical loss and KL 
+            into a single differentiable objective.
+        train_loader (DataLoader): Dataloader for the training dataset.
+        val_loader (DataLoader): Dataloader for the validation dataset (currently unused here).
+        parameters (Dict[str, Any]): A dictionary of training hyperparameters, which can include:
+            - 'lr': Learning rate.
+            - 'momentum': Momentum term for SGD.
+            - 'epochs': Number of epochs.
+            - 'num_samples': Usually the size of the training set (or mini-batch size times steps).
+            - 'seed': Random seed (optional).
+            - 'pmin': Minimum probability for bounding (optional).
+        device (torch.device): The device (CPU or GPU) for training.
+        wandb_params (Dict, optional): Configuration for logging to Weights & Biases. Expects keys:
+            - "log_wandb": bool, whether to log or not
+            - "name_wandb": str, run name / prefix for logging
+
+    Returns:
+        None: The model (and its posterior) are updated in-place over the specified epochs.
+    """
     criterion = torch.nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(),
                                 lr=parameters['lr'],

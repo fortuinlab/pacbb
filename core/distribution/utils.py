@@ -18,6 +18,25 @@ def from_ivon(model: nn.Module,
               requires_grad: bool = True,
               get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
               ) -> DistributionT:
+    """
+    Construct a distribution from an IVON optimizer's parameters and Hessian approximations.
+
+    This function extracts weight and bias information (as well as Hessians) from the
+    IVON optimizer, then creates instances of the specified `distribution` for each
+    parameter. The newly created distributions can be used as a posterior or prior
+    in a PAC-Bayes setting.
+
+    Args:
+        model (nn.Module): The (deterministic) model whose parameters correspond to the IVON's weights.
+        optimizer (ivon.IVON): An instance of IVON optimizer containing the Hessian approximations.
+        distribution (Type[AbstractVariable]): The subclass of `AbstractVariable` to instantiate.
+        requires_grad (bool, optional): If True, gradients will be computed on the newly created parameters.
+        get_layers_func (Callable, optional): A function to retrieve model layers. Defaults to `get_torch_layers`.
+
+    Returns:
+        DistributionT: A dictionary mapping layer names to dicts of {'weight': ..., 'bias': ...},
+        each containing an instance of `AbstractVariable`.
+    """
     distributions = {}
     i = 0
     shift = 0
@@ -59,6 +78,24 @@ def from_flat_rho(model: nn.Module,
                   requires_grad: bool = True,
                   get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                   ) -> DistributionT:
+    """
+    Create distributions for each layer using a shared or flat `rho` array.
+
+    This function takes a model and a `rho` tensor/list containing values for all weight/bias
+    elements in consecutive order. Each layer's `mu` is initialized from the current layer weights,
+    and `rho` is reshaped accordingly for the layer's shape.
+
+    Args:
+        model (nn.Module): The PyTorch model whose layers are converted into distributions.
+        rho (Union[Tensor, List[float]]): A 1D tensor or list of floating values used to set `rho`.
+        distribution (Type[AbstractVariable]): The subclass of `AbstractVariable` to instantiate.
+        requires_grad (bool, optional): If True, gradients will be computed for the distribution parameters.
+        get_layers_func (Callable, optional): Function for iterating over the model layers. Defaults to `get_torch_layers`.
+
+    Returns:
+        DistributionT: A dictionary of layer distributions keyed by layer names, each
+        containing 'weight' and 'bias' distributions if they exist.
+    """
     distributions = {}
     shift = 0
     for name, layer in get_layers_func(model):
@@ -97,6 +134,25 @@ def _from_any(model: nn.Module,
               weight_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'weight'),
               bias_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'bias')
               ) -> DistributionT:
+    """
+    A helper function to create a distribution for each layer in a model using
+    user-provided fill functions for `mu` and `rho`.
+
+    Args:
+        model (nn.Module): The model to convert into distributions.
+        distribution (Type[AbstractVariable]): The type of variable distribution to instantiate.
+        requires_grad (bool): If True, gradients will be computed on the distribution parameters.
+        get_layers_func (Callable): A function to iterate over model layers and yield (name, layer) pairs.
+        weight_mu_fill_func (Callable): A function that returns a tensor for initializing the weight `mu`.
+        weight_rho_fill_func (Callable): A function that returns a tensor for initializing the weight `rho`.
+        bias_mu_fill_func (Callable): A function that returns a tensor for initializing the bias `mu`.
+        bias_rho_fill_func (Callable): A function that returns a tensor for initializing the bias `rho`.
+        weight_exists (Callable, optional): A predicate to check if a layer contains a weight attribute.
+        bias_exists (Callable, optional): A predicate to check if a layer contains a bias attribute.
+
+    Returns:
+        DistributionT: A dictionary mapping each layer to weight/bias distributions.
+    """
     distributions = {}
     for name, layer in get_layers_func(model):
         if weight_exists(layer) and layer.weight is not None:
@@ -123,6 +179,20 @@ def from_random(model: nn.Module,
                 requires_grad: bool = True,
                 get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                 ) -> DistributionT:
+    """
+    Create a distribution for each layer with randomly initialized mean (using truncated normal)
+    and a constant `rho` value.
+
+    Args:
+        model (nn.Module): The target PyTorch model.
+        rho (Tensor): A single scalar tensor defining the initial `rho` for all weights/biases.
+        distribution (Type[AbstractVariable]): The class for creating each weight/bias distribution.
+        requires_grad (bool, optional): If True, allows gradient-based updates of `mu` and `rho`.
+        get_layers_func (Callable, optional): Function to iterate over model layers. Defaults to `get_torch_layers`.
+
+    Returns:
+        DistributionT: A dictionary containing layer-wise distributions for weights and biases.
+    """
     def get_truncated_normal_fill_tensor(layer: nn.Module) -> Tensor:
         t = torch.Tensor(*layer.weight.shape)
         if hasattr(layer, 'weight') and layer.weight is not None:
@@ -144,6 +214,19 @@ def from_zeros(model: nn.Module,
                requires_grad: bool = True,
                get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                ) -> DistributionT:
+    """
+    Create distributions for each layer by setting `mu` to zero and `rho` to a constant value.
+
+    Args:
+        model (nn.Module): The PyTorch model.
+        rho (Tensor): A scalar defining the initial `rho` for all weights/biases.
+        distribution (Type[AbstractVariable]): Distribution class to instantiate.
+        requires_grad (bool, optional): Whether to track gradients for `mu` and `rho`.
+        get_layers_func (Callable, optional): Layer iteration function. Defaults to `get_torch_layers`.
+
+    Returns:
+        DistributionT: A dictionary mapping layer names to weight/bias distributions.
+    """
     return _from_any(model, distribution, requires_grad, get_layers_func,
                      weight_mu_fill_func=lambda layer: torch.zeros(*layer.weight.shape),
                      weight_rho_fill_func=lambda layer: torch.ones(*layer.weight.shape) * rho,
@@ -157,6 +240,28 @@ def from_layered(model: torch.nn.Module,
                  requires_grad: bool = True,
                  get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
                  ) -> DistributionT:
+    """
+    Create distributions by extracting `mu` and `rho` from specified attributes in the model layers.
+
+    This function looks up layer attributes for weight and bias (e.g., "weight_mu", "weight_rho")
+    using `attribute_mapping`, then initializes each distribution accordingly.
+
+    Args:
+        model (nn.Module): The model whose layers contain the specified attributes.
+        attribute_mapping (dict[str, str]): A mapping of attribute names, for example:
+            {
+              "weight_mu": "mu_weight",
+              "weight_rho": "rho_weight",
+              "bias_mu": "mu_bias",
+              "bias_rho": "rho_bias"
+            }
+        distribution (Type[AbstractVariable]): The class used to create weight/bias distributions.
+        requires_grad (bool, optional): If True, gradients will be computed on `mu` and `rho`.
+        get_layers_func (Callable, optional): Layer iteration function.
+
+    Returns:
+        DistributionT: A dictionary of distributions keyed by layer names.
+    """
     return _from_any(model, distribution, requires_grad, get_layers_func,
                      weight_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
                      bias_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
@@ -171,6 +276,19 @@ def from_bnn(model: nn.Module,
              requires_grad: bool = True,
              get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_bayesian_torch_layers,
              ) -> DistributionT:
+    """
+    Construct distributions by reading the attributes (e.g., mu_weight, rho_weight, mu_bias, rho_bias)
+    from layers typically found in BayesianTorch modules.
+
+    Args:
+        model (nn.Module): The Bayesian Torch model containing layer attributes such as mu_weight, rho_weight, etc.
+        distribution (Type[AbstractVariable]): The subclass of `AbstractVariable` for each parameter.
+        requires_grad (bool, optional): If True, allows gradient-based optimization of `mu` and `rho`.
+        get_layers_func (Callable, optional): A function that retrieves BayesianTorch layers. Defaults to `get_bayesian_torch_layers`.
+
+    Returns:
+        DistributionT: A dictionary mapping layer names to weight/bias distributions.
+    """
     distributions = {}
     for name, layer in get_layers_func(model):
         if hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight'):
@@ -200,6 +318,18 @@ def from_copy(dist: DistributionT,
               distribution: Type[AbstractVariable],
               requires_grad: bool = True,
               ) -> DistributionT:
+    """
+    Create a new distribution by copying `mu` and `rho` from an existing distribution.
+
+    Args:
+        dist (DistributionT): A distribution dictionary to copy from.
+        distribution (Type[AbstractVariable]): The class to instantiate for each weight/bias.
+        requires_grad (bool, optional): If True, the new distribution parameters can be updated via gradients.
+
+    Returns:
+        DistributionT: A new distribution dictionary with the same layer structure, 
+        but new `mu` and `rho` parameters cloned from `dist`.
+    """
     distributions = {}
     for name, layer in dist.items():
         weight_distribution = distribution(mu=layer['weight'].mu.detach().clone(),
@@ -218,6 +348,18 @@ def from_copy(dist: DistributionT,
 
 
 def compute_kl(dist1: DistributionT, dist2: DistributionT) -> Tensor:
+    """
+    Compute the total KL divergence between two distributions of the same structure.
+
+    Each corresponding layer's weight/bias KL is summed to produce a single scalar.
+
+    Args:
+        dist1 (DistributionT): The first distribution dictionary.
+        dist2 (DistributionT): The second distribution dictionary.
+
+    Returns:
+        Tensor: A scalar tensor representing the total KL divergence across all layers.
+    """
     kl_list = []
     for idx in dist1:
         for key in dist1[idx]:
@@ -229,13 +371,13 @@ def compute_kl(dist1: DistributionT, dist2: DistributionT) -> Tensor:
 
 def compute_standard_normal_cdf(x: float) -> float:
     """
-    Compute the standard normal cumulative distribution function.
+    Compute the cumulative distribution function (CDF) of a standard normal at point x.
 
-    Parameters:
-    x (float): The input value.
+    Args:
+        x (float): The input value at which to evaluate the standard normal CDF.
 
     Returns:
-    float: The cumulative distribution function value at x.
+        float: The CDF value of the standard normal distribution at x.
     """
     # TODO: replace with numpy
     return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
@@ -248,7 +390,22 @@ def truncated_normal_fill_tensor(
     a: float = -2.0,
     b: float = 2.0,
 ) -> torch.Tensor:
-    # TODO: refactor
+    """
+    Fill a tensor in-place with values drawn from a truncated normal distribution.
+
+    The resulting values lie in the interval [a, b], centered around `mean`
+    with approximate std `std`.
+
+    Args:
+        tensor (torch.Tensor): The tensor to fill.
+        mean (float, optional): Mean of the desired distribution. Defaults to 0.0.
+        std (float, optional): Standard deviation of the desired distribution. Defaults to 1.0.
+        a (float, optional): Lower bound of truncation. Defaults to -2.0.
+        b (float, optional): Upper bound of truncation. Defaults to 2.0.
+
+    Returns:
+        torch.Tensor: The same tensor, filled in-place with truncated normal values.
+    """
     with torch.no_grad():
         # Get upper and lower cdf values
         l = compute_standard_normal_cdf((a - mean) / std)
