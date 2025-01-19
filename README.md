@@ -116,4 +116,3 @@ Special thanks to **Vincent Fortuin** and **Alex Immer** for their supervision, 
 * **Yauhenii** (Yauheni Mardan)
 
 * **Misipuk** (Maksym Tretiakov)
-
