@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from scripts.utils.dataset.loader import AbstractLoader
-
 
 class AbstractSplitStrategy(ABC):
     """
@@ -14,7 +12,7 @@ class AbstractSplitStrategy(ABC):
     ensuring that prior data, posterior data, and bound data do not overlap.
     """
     @abstractmethod
-    def split(self, dataset_loader: AbstractLoader, split_config: Dict) -> None:
+    def split(self, dataset_loader: "AbstractLoader", split_config: Dict) -> None:
         """
         Partition the data from `dataset_loader` according to the configuration in `split_config`.
 
