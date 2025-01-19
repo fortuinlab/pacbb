@@ -79,7 +79,8 @@ conda create --prefix=./conda_env python=3.11 pip install -r requirements.txt
 4. Run the configuration using the Python script directly:
 
 ```
-export PYTHONPATH="${PYTHONPATH}:$(pwd)" python scripts/ivon_generic_train.py --config ./config/ivon_generic_configs/best_ivon.yaml
+export PYTHONPATH="${PYTHONPATH}:$(pwd)" 
+python scripts/ivon_generic_train.py --config ./config/ivon_generic_configs/best_ivon.yaml
 ```
 
 Alternatively, run multiple configuration files using a bash script wrapper:
