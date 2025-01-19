@@ -5,7 +5,26 @@ from core.layer import AbstractProbLayer
 
 
 class ProbBatchNorm2d(nn.BatchNorm2d, AbstractProbLayer):
+    """
+    A probabilistic 2D batch normalization layer.
+
+    Extends PyTorch's `nn.BatchNorm2d` to sample weight and bias from learned
+    distributions for use in a probabilistic neural network.
+    """
     def forward(self, input: Tensor) -> Tensor:
+        """
+        Forward pass for probabilistic 2D batch normalization.
+
+        During training:
+          - Uses mini-batch statistics to normalize.
+          - Samples weight and bias if `probabilistic_mode` is True.
+
+        Args:
+            input (Tensor): Input tensor of shape (N, C, H, W).
+
+        Returns:
+            Tensor: Batch-normalized output of the same shape as `input`.
+        """
         self._check_input_dim(input)
 
         if self.momentum is None:
