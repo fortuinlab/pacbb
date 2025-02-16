@@ -68,6 +68,10 @@ losses = {
 ```
 Different variants can be plugged in, as long as they are implemented under the `AbstractLoss` interface (which ensures a forward pass that outputs a bounded value).
 
+### Metrics
+
+Metrics are used purely for evaluation (e.g., classification accuracy, F1-score, or custom metrics). They need not be bounded, nor do they appear directly in the PAC-Bayes inequality. But they help you diagnose performance.
+
 ---
 
 ## Links
