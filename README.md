@@ -87,7 +87,7 @@ Alternatively, run multiple configuration files using a bash script wrapper:
 
 ```
 export PYTHONPATH="${PYTHONPATH}:$(pwd)" 
-bash jobs/runnig_ivon_configs_in_the_folder.sh ./config/ivon_generic_configs/best_ivon.yaml
+bash jobs/runnig_ivon_configs_in_the_folder.sh ./config/ivon_generic_configs
 ```
 
 
