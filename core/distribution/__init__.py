@@ -15,3 +15,4 @@ PAC-Bayes model.
 
 from core.distribution.AbstractVariable import AbstractVariable
 from core.distribution.GaussianVariable import GaussianVariable
+from core.distribution.LaplaceVariable import LaplaceVariable
