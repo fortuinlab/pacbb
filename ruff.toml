@@ -1,7 +1,7 @@
 fix = true
 target-version = "py311"
 
-# Include only specific directories
+exclude = ["**/__init__.py"]
 include = ["core/**/*.py", "scripts/**/*.py"]
 
 line-length = 88
