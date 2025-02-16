@@ -46,8 +46,46 @@ In practice, one typically:
 
 Below, we break down each code component in an example pipeline. Along the way, we point out key theoretical ideas (for example, the bounded-loss requirement, data splitting for data-dependent priors, or the role of KL divergence in each objective). This corresponds to the working script `generic_train.py` from our repository.
 
----
 
+### Losses in PAC-Bayes
+
+A core requirement of PAC-Bayes is that the loss function must be bounded, typically in $[0,1]$. For classification, the 0-1 loss is a natural choice but is not differentiable. Instead, implementations often employ a bounded negative log-likelihood:
+
+$$
+l(f(X), Y) = \frac{-\log \max\{P(Y\mid f(X)), p_{\min}\}}{\log(1/p_{\min})}
+$$
+
+so that $l$ remains in $[0,1]$.
+
+In practice, you might have a factory of losses:
+```python
+loss_factory = LossFactory()
+losses = {
+    "nll_loss": loss_factory.create("nll_loss"),
+    "scaled_nll_loss": loss_factory.create("scaled_nll_loss"),
+    "01_loss": loss_factory.create("01_loss")
+}
+```
+Different variants can be plugged in, as long as they are implemented under the `AbstractLoss` interface (which ensures a forward pass that outputs a bounded value).
+
+### Metrics
+
+Metrics are used purely for evaluation (e.g., classification accuracy, F1-score, or custom metrics). They need not be bounded, nor do they appear directly in the PAC-Bayes inequality. But they help you diagnose performance.
+
+```python
+# Creating typical metrics for evaluation (not necessarily bounded).
+metric_factory = MetricFactory()
+metrics = {
+    "accuracy_micro_metric": metric_factory.create("accuracy_micro_metric"),
+    "accuracy_macro_metric": metric_factory.create("accuracy_macro_metric"),
+    "f1_micro_metric": metric_factory.create("f1_micro_metric"),
+    "f1_macro_metric": metric_factory.create("f1_macro_metric")
+}
+```
+
+These can be accuracy, precision, confusion matrices, etc.
+
+---
 
 ## Links
 
