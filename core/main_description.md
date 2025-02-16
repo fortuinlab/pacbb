@@ -72,6 +72,19 @@ Different variants can be plugged in, as long as they are implemented under the 
 
 Metrics are used purely for evaluation (e.g., classification accuracy, F1-score, or custom metrics). They need not be bounded, nor do they appear directly in the PAC-Bayes inequality. But they help you diagnose performance.
 
+```python
+# Creating typical metrics for evaluation (not necessarily bounded).
+metric_factory = MetricFactory()
+metrics = {
+    "accuracy_micro_metric": metric_factory.create("accuracy_micro_metric"),
+    "accuracy_macro_metric": metric_factory.create("accuracy_macro_metric"),
+    "f1_micro_metric": metric_factory.create("f1_micro_metric"),
+    "f1_macro_metric": metric_factory.create("f1_macro_metric")
+}
+```
+
+These can be accuracy, precision, confusion matrices, etc.
+
 ---
 
 ## Links
