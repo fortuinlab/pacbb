@@ -125,6 +125,15 @@ bounds = {
 }
 ```
 
+### Data Splitting & Prior Selection
+
+To build an informed prior without violating the PAC-Bayes assumptions, we split the available data into three subsets: $\mathcal{S}_{\text{prior}}$, $\mathcal{S}_{\text{bound}}$, and $\mathcal{S}_{\text{posterior}}$. Specifically:
+
+- The prior is trained solely on $\mathcal{S}_{\text{prior}}$. 
+- The PAC-Bayes bound is computed later on $\mathcal{S}_{\text{bound}}$ only, ensuring that the prior was chosen independently of these samples.
+- The posterior can be refined on additional data (potentially uniting $\mathcal{S}_{\text{prior}}$ and $\mathcal{S}_{\text{posterior}}$) after the prior has been established. 
+
+By specifying `prior_type="learnt"`, we indicate in the code below that we intend to select or train a prior distribution from the $\mathcal{S}_{\text{prior}}$ samples, rather than fixing a data-independent prior. The fraction `prior_percent=0.7` means that 70% of the `train_percent` samples go to the prior, while the remaining 30% form $\mathcal{S}_{\text{bound}}$ (with additional splitting if validation/test sets are used). Once split, $\mathcal{S}_{\text{prior}}$ is passed to a training to learn the prior distribution’s parameters.
 
 ---
 
