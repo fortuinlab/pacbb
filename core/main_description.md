@@ -46,8 +46,19 @@ In practice, one typically:
 
 Below, we break down each code component in an example pipeline. Along the way, we point out key theoretical ideas (for example, the bounded-loss requirement, data splitting for data-dependent priors, or the role of KL divergence in each objective). This corresponds to the working script `generic_train.py` from our repository.
 
----
 
+### Losses in PAC-Bayes
+
+A core requirement of PAC-Bayes is that the loss function must be bounded, typically in $[0,1]$. For classification, the 0-1 loss is a natural choice but is not differentiable. Instead, implementations often employ a bounded negative log-likelihood:
+
+$$
+l(f(X), Y) = \frac{-\log \max\{P(Y\mid f(X)), p_{\min}\}}{\log(1/p_{\min})}
+$$
+
+so that $l$ remains in $[0,1]$.
+
+
+---
 
 ## Links
 
