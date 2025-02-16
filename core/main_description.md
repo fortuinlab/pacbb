@@ -57,6 +57,16 @@ $$
 
 so that $l$ remains in $[0,1]$.
 
+In practice, you might have a factory of losses:
+```python
+loss_factory = LossFactory()
+losses = {
+    "nll_loss": loss_factory.create("nll_loss"),
+    "scaled_nll_loss": loss_factory.create("scaled_nll_loss"),
+    "01_loss": loss_factory.create("01_loss")
+}
+```
+Different variants can be plugged in, as long as they are implemented under the `AbstractLoss` interface (which ensures a forward pass that outputs a bounded value).
 
 ---
 
