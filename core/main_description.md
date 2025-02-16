@@ -157,6 +157,7 @@ strategy.split(loader, split_config={
     "seed": 111
 })
 ```
+Training the prior on $\mathcal{S}_{\text{prior}}$ is what we refer to as "Prior Selection". This data-driven selection ensures the prior distribution is tuned to some portion of the data while still preserving a separate $\mathcal{S}_{\text{bound}}$ for unbiased bound computation.
 
 
 ---
