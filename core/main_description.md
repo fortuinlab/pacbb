@@ -94,14 +94,14 @@ $$
 \,\le\,
 \mathbb{E}_{\theta\sim\rho}[r(\theta)]
 \;+\;
-\mathrm{Complexity}(\rho,\pi,n,\delta),
+\mathrm{Complexity}(KL(\rho \| \pi),\, n, \delta),
 $$
 
 where:
 
+- $KL(\rho \|\pi)$ measures how far the posterior $\rho$ is from the prior $\pi$.
 - $n$ is the effective number of data samples used in the bound. In a data-splitting scenario, it often corresponds to the size of the bound set, and in code it is usually deduced from the `bound_loader` (for example by `len(bound_loader.dataset)`).
 - $\delta$ is a confidence parameter. The bound holds with probability at least $1 - \delta$.
-- $KL(\rho \|\pi)$ measures how far the posterior $\rho$ is from the prior $\pi$. This term appears inside the $\mathrm{Complexity}$ function.
 
 In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The parameter `loss_delta` is a separate hyperparameter for bounding or adjusting the loss term in practice. For instance, one might cap a negative log-likelihood at $\log(1/p_{\min})$ or include a data-driven threshold. While usage can vary by codebase, typically:
 
