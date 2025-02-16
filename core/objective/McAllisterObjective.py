@@ -11,6 +11,7 @@ class McAllisterObjective(AbstractObjective):
     combining empirical loss with a square-root term involving KL and delta,
     plus additional constants (e.g., 5/2 ln(n)) in the bounding expression.
     """
+
     def __init__(self, kl_penalty: float, delta: float):
         """
         Args:
@@ -36,5 +37,8 @@ class McAllisterObjective(AbstractObjective):
             Tensor: A scalar objective = loss + sqrt( [kl_penalty*KL + 5/2 ln(n) - ln(delta) + 8 ] / [2n - 1] ).
         """
         kl = kl * self._kl_penalty
-        kl_ratio = torch.div(kl + 5 / 2 * np.log(num_samples) - np.log(self._delta) + 8, 2 * num_samples - 1)
+        kl_ratio = torch.div(
+            kl + 5 / 2 * np.log(num_samples) - np.log(self._delta) + 8,
+            2 * num_samples - 1,
+        )
         return loss + torch.sqrt(kl_ratio)

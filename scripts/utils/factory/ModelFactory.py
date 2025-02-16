@@ -1,7 +1,7 @@
 from torch import nn
-from scripts.utils.model import NNModel, ConvNNModel, ConvNN15Model, ResNet, GoogLeNet
 
 from scripts.utils.factory import AbstractFactory
+from scripts.utils.model import ConvNN15Model, ConvNNModel, GoogLeNet, NNModel, ResNet
 
 
 class ModelFactory(AbstractFactory[nn.Module]):

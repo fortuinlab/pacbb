@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Type, TypeVar, Generic
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -10,9 +10,9 @@ class AbstractFactory(Generic[T], ABC):
     """
 
     def __init__(self) -> None:
-        self._creators: dict[str, Type[T]] = {}
+        self._creators: dict[str, type[T]] = {}
 
-    def register_creator(self, name: str, cls: Type[T]) -> None:
+    def register_creator(self, name: str, cls: type[T]) -> None:
         """
         Register a creator class with the factory.
 

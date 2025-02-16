@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 import torch
@@ -24,7 +23,7 @@ class FaultySplitStrategy(PBPSplitStrategy):
         bound_loader (DataLoader): DataLoader for bound evaluation set.
         bound_loader_1batch (DataLoader): DataLoader for bound evaluation set (one big batch).
     """
-    
+
     # Posterior training
     posterior_loader: data.dataloader.DataLoader = None
     # Prior training
@@ -36,8 +35,15 @@ class FaultySplitStrategy(PBPSplitStrategy):
     # Bounds evaluation
     bound_loader: data.dataloader.DataLoader = None
     bound_loader_1batch: data.dataloader.DataLoader = None
-    
-    def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+
+    def __init__(
+        self,
+        prior_type: str,
+        train_percent: float,
+        val_percent: float,
+        prior_percent: float,
+        self_certified: bool,
+    ):
         """
         Initialize the FaultySplitStrategy with user-defined percentages
         and flags for how to partition the dataset.
@@ -49,14 +55,16 @@ class FaultySplitStrategy(PBPSplitStrategy):
             prior_percent (float): Fraction of dataset to use for prior training.
             self_certified (bool): If True, indicates self-certified approach to data splitting.
         """
-        super().__init__(prior_type, train_percent, val_percent, prior_percent, self_certified)
+        super().__init__(
+            prior_type, train_percent, val_percent, prior_percent, self_certified
+        )
 
     def _split_not_learnt(
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split the data for the case when the prior is not learned from data.
@@ -128,8 +136,8 @@ class FaultySplitStrategy(PBPSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split logic when the prior is learned from data and we use a self-certified approach.
@@ -158,7 +166,7 @@ class FaultySplitStrategy(PBPSplitStrategy):
         if val_percent > 0.0:
             bound_idx = indices[split:]
             indices_prior = list(range(split))
-            all_prior_sampler = SubsetRandomSampler(indices_prior)
+            _all_prior_sampler = SubsetRandomSampler(indices_prior)
             split_val = int(np.round((val_percent) * split))
             prior_idx, val_idx = indices_prior[split_val:], indices_prior[:split_val]
         else:
@@ -213,8 +221,8 @@ class FaultySplitStrategy(PBPSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split logic for a learned prior without self-certification.
@@ -244,7 +252,7 @@ class FaultySplitStrategy(PBPSplitStrategy):
         if val_percent > 0.0:
             bound_idx = indices[split:]
             indices_prior = list(range(split))
-            all_prior_sampler = SubsetRandomSampler(indices_prior)
+            _all_prior_sampler = SubsetRandomSampler(indices_prior)
             split_val = int(np.round((val_percent) * split))
             prior_idx, val_idx = indices_prior[split_val:], indices_prior[:split_val]
         else:

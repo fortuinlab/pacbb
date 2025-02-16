@@ -1,5 +1,5 @@
-from torch import nn, Tensor
-import torch.nn.functional as F
+import torch.nn.functional as f
+from torch import Tensor, nn
 
 from core.layer import AbstractProbLayer
 
@@ -11,6 +11,7 @@ class ProbBatchNorm2d(nn.BatchNorm2d, AbstractProbLayer):
     Extends PyTorch's `nn.BatchNorm2d` to sample weight and bias from learned
     distributions for use in a probabilistic neural network.
     """
+
     def forward(self, input: Tensor) -> Tensor:
         """
         Forward pass for probabilistic 2D batch normalization.
@@ -47,7 +48,7 @@ class ProbBatchNorm2d(nn.BatchNorm2d, AbstractProbLayer):
 
         sampled_weight, sampled_bias = self.sample_from_distribution()
 
-        return F.batch_norm(
+        return f.batch_norm(
             input,
             self.running_mean
             if not self.training or self.track_running_stats

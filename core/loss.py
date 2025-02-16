@@ -1,10 +1,10 @@
-from typing import List, Callable
+from collections.abc import Callable
 
 import numpy as np
 import torch
-import torch.nn.functional as F
-from torch import Tensor
 import torch.nn as nn
+import torch.nn.functional as f
+from torch import Tensor
 from tqdm import tqdm
 
 from core.model import bounded_call
@@ -14,8 +14,8 @@ def rescale_loss(loss: Tensor, pmin: float) -> Tensor:
     """
     Rescale a loss value by dividing it by log(1/pmin).
 
-    This is often used in PAC-Bayes settings to keep losses within a certain range 
-    (e.g., converting losses to the [0, 1] interval) or to improve numerical stability 
+    This is often used in PAC-Bayes settings to keep losses within a certain range
+    (e.g., converting losses to the [0, 1] interval) or to improve numerical stability
     when probabilities must be bounded below by `pmin`.
 
     Args:
@@ -32,7 +32,7 @@ def nll_loss(outputs: Tensor, targets: Tensor, pmin: float = None) -> Tensor:
     """
     Compute the negative log-likelihood (NLL) loss for classification.
 
-    In typical classification settings, `outputs` is the log-probability of each class 
+    In typical classification settings, `outputs` is the log-probability of each class
     (e.g., from a log-softmax layer), and `targets` are the true class indices.
 
     Args:
@@ -43,14 +43,14 @@ def nll_loss(outputs: Tensor, targets: Tensor, pmin: float = None) -> Tensor:
     Returns:
         Tensor: A scalar tensor representing the average NLL loss over the batch.
     """
-    return F.nll_loss(outputs, targets)
+    return f.nll_loss(outputs, targets)
 
 
 def scaled_nll_loss(outputs: Tensor, targets: Tensor, pmin: float) -> Tensor:
     """
     Compute the negative log-likelihood (NLL) loss and then rescale it by log(1/pmin).
 
-    This is a combination of `nll_loss` and `rescale_loss`, often used to ensure 
+    This is a combination of `nll_loss` and `rescale_loss`, often used to ensure
     that the final loss remains within a desired numeric range for PAC-Bayes optimization.
 
     Args:
@@ -68,7 +68,7 @@ def zero_one_loss(outputs: Tensor, targets: Tensor, pmin: float = None) -> Tenso
     """
     Compute the 0-1 classification error.
 
-    This function returns a loss between 0 and 1, where 0 indicates perfect 
+    This function returns a loss between 0 and 1, where 0 indicates perfect
     classification on the given batch and 1 indicates total misclassification.
 
     Args:
@@ -86,11 +86,13 @@ def zero_one_loss(outputs: Tensor, targets: Tensor, pmin: float = None) -> Tenso
     return Tensor([loss_01])
 
 
-def _compute_losses(model: nn.Module,
-                    inputs: Tensor,
-                    targets: Tensor,
-                    loss_func_list: List[Callable],
-                    pmin: float = None) -> List[Tensor]:
+def _compute_losses(
+    model: nn.Module,
+    inputs: Tensor,
+    targets: Tensor,
+    loss_func_list: list[Callable],
+    pmin: float = None,
+) -> list[Tensor]:
     """
     Compute a list of loss values for a single forward pass of the model.
 
@@ -101,13 +103,13 @@ def _compute_losses(model: nn.Module,
         model (nn.Module): A (probabilistic) neural network model.
         inputs (Tensor): Input data for one batch, of shape (batch_size, ...).
         targets (Tensor): Ground truth labels for the batch.
-        loss_func_list (List[Callable]): A list of loss functions to compute 
+        loss_func_list (List[Callable]): A list of loss functions to compute
             (e.g., [nll_loss, zero_one_loss]).
-        pmin (float, optional): A lower bound for probabilities. If given, 
+        pmin (float, optional): A lower bound for probabilities. If given,
             `bounded_call` is used before computing losses.
 
     Returns:
-        List[Tensor]: A list of scalar loss tensors, each corresponding to one function 
+        List[Tensor]: A list of scalar loss tensors, each corresponding to one function
             in `loss_func_list`.
     """
     if pmin:
@@ -117,38 +119,42 @@ def _compute_losses(model: nn.Module,
         outputs = model(inputs)
     losses = []
     for loss_func in loss_func_list:
-        loss = loss_func(outputs, targets, pmin) if pmin else loss_func(outputs, targets)
+        loss = (
+            loss_func(outputs, targets, pmin) if pmin else loss_func(outputs, targets)
+        )
         losses.append(loss)
     return losses
 
 
-def compute_losses(model: nn.Module,
-                   bound_loader: torch.utils.data.DataLoader,
-                   mc_samples: int,
-                   loss_func_list: List[Callable],
-                   device: torch.device,
-                   pmin: float = None) -> Tensor:
+def compute_losses(
+    model: nn.Module,
+    bound_loader: torch.utils.data.DataLoader,
+    mc_samples: int,
+    loss_func_list: list[Callable],
+    device: torch.device,
+    pmin: float = None,
+) -> Tensor:
     """
     Compute average losses over multiple Monte Carlo samples for a given dataset.
 
-    This function is typically used to estimate the expected risk under the 
+    This function is typically used to estimate the expected risk under the
     posterior by sampling the model `mc_samples` times for each batch in the `bound_loader`.
 
     Args:
         model (nn.Module): A probabilistic neural network model.
-        bound_loader (DataLoader): A DataLoader for the dataset on which 
+        bound_loader (DataLoader): A DataLoader for the dataset on which
             the losses should be computed (e.g. a bound or test set).
-        mc_samples (int): Number of Monte Carlo samples to draw from the posterior 
+        mc_samples (int): Number of Monte Carlo samples to draw from the posterior
             for each batch.
-        loss_func_list (List[Callable]): List of loss functions to evaluate 
+        loss_func_list (List[Callable]): List of loss functions to evaluate
             (e.g., [nll_loss, zero_one_loss]).
         device (torch.device): The device (CPU/GPU) on which computations are performed.
-        pmin (float, optional): A lower bound for probabilities. If provided, 
+        pmin (float, optional): A lower bound for probabilities. If provided,
             `bounded_call` will be used to clamp model outputs.
 
     Returns:
-        Tensor: A tensor of shape (len(loss_func_list),) containing the average losses 
-            across the entire dataset for each loss function. The result is typically 
+        Tensor: A tensor of shape (len(loss_func_list),) containing the average losses
+            across the entire dataset for each loss function. The result is typically
             used to estimate or bound the generalization error in PAC-Bayes experiments.
     """
     with torch.no_grad():
@@ -156,7 +162,7 @@ def compute_losses(model: nn.Module,
         for data, targets in tqdm(bound_loader):
             data, targets = data.to(device), targets.to(device)
             mc_loss_list = []
-            for i in range(mc_samples):
+            for _i in range(mc_samples):
                 losses = _compute_losses(model, data, targets, loss_func_list, pmin)
                 mc_loss_list.append(Tensor(losses))
             batch_wise_loss_list.append(torch.stack(mc_loss_list).mean(dim=0))

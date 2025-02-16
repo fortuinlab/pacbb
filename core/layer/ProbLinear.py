@@ -1,5 +1,5 @@
-from torch import nn, Tensor
-import torch.nn.functional as F
+import torch.nn.functional as f
+from torch import Tensor, nn
 
 from core.layer import AbstractProbLayer
 
@@ -11,6 +11,7 @@ class ProbLinear(nn.Linear, AbstractProbLayer):
     Extends `nn.Linear` such that weights and bias are sampled from
     a distribution during each forward pass if `probabilistic_mode` is True.
     """
+
     def forward(self, input: Tensor) -> Tensor:
         """
         Forward pass for a probabilistic linear layer.
@@ -22,4 +23,4 @@ class ProbLinear(nn.Linear, AbstractProbLayer):
             Tensor: Output tensor of shape (N, out_features).
         """
         sampled_weight, sampled_bias = self.sample_from_distribution()
-        return F.linear(input, sampled_weight, sampled_bias)
+        return f.linear(input, sampled_weight, sampled_bias)

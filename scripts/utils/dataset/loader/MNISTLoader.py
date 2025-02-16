@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import torch
 from torch.utils import data
 from torchvision import datasets, transforms
@@ -11,7 +9,7 @@ class MNISTLoader(AbstractLoader):
     def __init__(self, dataset_path):
         super().__init__(dataset_path)
 
-    def load(self, seed: int = 7) -> Tuple[data.Dataset, data.Dataset]:
+    def load(self, seed: int = 7) -> tuple[data.Dataset, data.Dataset]:
         torch.manual_seed(seed)
         transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]

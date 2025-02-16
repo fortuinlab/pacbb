@@ -1,5 +1,11 @@
-from core.objective import AbstractObjective, FClassicObjective, McAllisterObjective, FQuadObjective, BBBObjective, TolstikhinObjective
-
+from core.objective import (
+    AbstractObjective,
+    BBBObjective,
+    FClassicObjective,
+    FQuadObjective,
+    McAllisterObjective,
+    TolstikhinObjective,
+)
 from scripts.utils.factory import AbstractFactory
 
 

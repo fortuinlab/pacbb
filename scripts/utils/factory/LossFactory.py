@@ -1,7 +1,6 @@
-from typing import Callable
+from collections.abc import Callable
 
-from core.loss import nll_loss, scaled_nll_loss,  zero_one_loss
-
+from core.loss import nll_loss, scaled_nll_loss, zero_one_loss
 from scripts.utils.factory import AbstractFactory
 
 

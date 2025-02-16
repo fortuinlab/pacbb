@@ -17,9 +17,10 @@ class AbstractVariable(nn.Module, KLDivergenceInterface, ABC):
       - A method to sample from the underlying distribution
       - A method to compute KL divergence with another variable of the same type
 
-    This class inherits from `nn.Module` for parameter registration in PyTorch 
+    This class inherits from `nn.Module` for parameter registration in PyTorch
     and from `KLDivergenceInterface` for consistent KL divergence handling.
     """
+
     def __init__(
         self,
         mu: torch.Tensor,
@@ -63,7 +64,7 @@ class AbstractVariable(nn.Module, KLDivergenceInterface, ABC):
         pass
 
     @abstractmethod
-    def compute_kl(self, other: 'AbstractVariable') -> torch.Tensor:
+    def compute_kl(self, other: "AbstractVariable") -> torch.Tensor:
         """
         Compute the KL divergence between this variable and another variable
         of the same distribution type.

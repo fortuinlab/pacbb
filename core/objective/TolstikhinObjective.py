@@ -10,6 +10,7 @@ class TolstikhinObjective(AbstractObjective):
     Objective related to Tolstikhin et al. (2013), featuring a combination of
     the empirical loss, a square-root term involving KL, and an additional additive term.
     """
+
     def __init__(self, kl_penalty: float, delta: float):
         """
         Args:
@@ -36,8 +37,14 @@ class TolstikhinObjective(AbstractObjective):
             Tensor: The scalar objective value.
         """
         kl = kl * self._kl_penalty
-        second_term = 2 * loss * torch.div(kl + np.log(2 * num_samples) - np.log(self._delta),
-                                           2 * num_samples)
-        third_term = 2 * torch.div(kl + np.log(2 * num_samples) - np.log(self._delta),
-                                   2 * num_samples)
+        second_term = (
+            2
+            * loss
+            * torch.div(
+                kl + np.log(2 * num_samples) - np.log(self._delta), 2 * num_samples
+            )
+        )
+        third_term = 2 * torch.div(
+            kl + np.log(2 * num_samples) - np.log(self._delta), 2 * num_samples
+        )
         return loss + torch.sqrt(second_term) + third_term

@@ -1,6 +1,6 @@
 from torch import nn
 
-from core.layer import ProbLinear, ProbConv2d, ProbBatchNorm1d, ProbBatchNorm2d
+from core.layer import ProbBatchNorm1d, ProbBatchNorm2d, ProbConv2d, ProbLinear
 
 LAYER_MAPPING = {
     nn.Linear: ProbLinear,

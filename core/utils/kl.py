@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
 import torch
 
@@ -39,7 +39,7 @@ def inv_kl(qs, ks):
     izq = qs
     dch = 1 - 1e-10
     while True:
-        p = (izq + dch) * .5
+        p = (izq + dch) * 0.5
         if qs == 0:
             ikl = ks - (0 + (1 - qs) * math.log((1 - qs) / (1 - p)))
         elif qs == 1:

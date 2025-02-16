@@ -1,5 +1,5 @@
-from torch import nn, Tensor
-import torch.nn.functional as F
+import torch.nn.functional as f
+from torch import Tensor, nn
 
 from core.layer import AbstractProbLayer
 
@@ -11,6 +11,7 @@ class ProbConv2d(nn.Conv2d, AbstractProbLayer):
     Inherits from `nn.Conv2d` and `AbstractProbLayer`. Weights and bias
     are sampled from associated distributions during forward passes.
     """
+
     def forward(self, input: Tensor) -> Tensor:
         """
         Perform a 2D convolution using sampled weights and bias.
@@ -22,4 +23,12 @@ class ProbConv2d(nn.Conv2d, AbstractProbLayer):
             Tensor: The output tensor of shape (N, C_out, H_out, W_out).
         """
         sampled_weight, sampled_bias = self.sample_from_distribution()
-        return F.conv2d(input, sampled_weight, sampled_bias, self.stride, self.padding, self.dilation, self.groups)
+        return f.conv2d(
+            input,
+            sampled_weight,
+            sampled_bias,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+        )

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Union
 
 import numpy as np
 import torch
@@ -26,7 +26,7 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     - 'learnt': The prior is trained on some portion of the data.
     - 'learnt_with_test': Similar to 'learnt', but includes an explicit test subset.
     """
-    
+
     # Posterior training
     posterior_loader: data.dataloader.DataLoader = None
     # Prior training
@@ -39,7 +39,14 @@ class PBPSplitStrategy(AbstractSplitStrategy):
     bound_loader: data.dataloader.DataLoader = None
     bound_loader_1batch: data.dataloader.DataLoader = None
 
-    def __init__(self, prior_type: str, train_percent: float, val_percent: float, prior_percent: float, self_certified: bool):
+    def __init__(
+        self,
+        prior_type: str,
+        train_percent: float,
+        val_percent: float,
+        prior_percent: float,
+        self_certified: bool,
+    ):
         """
         Initialize the PBPSplitStrategy with user-defined parameters for how to partition the data.
 
@@ -60,8 +67,8 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split data for the scenario where the prior is not learned (e.g., a fixed prior).
@@ -134,8 +141,8 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split data when the prior is learned and we use a self-certified approach (all data combined).
@@ -229,8 +236,8 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Similar to `_split_learnt_self_certified`, but explicitly keeps a separate test set.
@@ -282,7 +289,7 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         bound_sampler = SubsetRandomSampler(bound_idx)
         prior_sampler = SubsetRandomSampler(prior_idx)
         val_sampler = SubsetRandomSampler(val_idx)
-        test_sampler  = SubsetRandomSampler(test_indices)
+        test_sampler = SubsetRandomSampler(test_indices)
 
         self.posterior_loader = torch.utils.data.DataLoader(
             train_test_dataset,
@@ -341,8 +348,8 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         self,
         train_dataset: data.Dataset,
         test_dataset: data.Dataset,
-        split_config: Dict,
-        loader_kwargs: Dict,
+        split_config: dict,
+        loader_kwargs: dict,
     ) -> None:
         """
         Split data when the prior is learned but not using a self-certified approach.
@@ -435,7 +442,7 @@ class PBPSplitStrategy(AbstractSplitStrategy):
         )
 
     def split(
-        self, dataset_loader: Union["MNISTLoader", "CIFAR10Loader"], split_config: Dict
+        self, dataset_loader: Union["MNISTLoader", "CIFAR10Loader"], split_config: dict
     ) -> None:
         """
         Public method to perform the split operation on a dataset loader,

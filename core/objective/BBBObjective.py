@@ -9,6 +9,7 @@ class BBBObjective(AbstractObjective):
 
     This objective typically adds a KL penalty weighted by a user-defined factor.
     """
+
     def __init__(self, kl_penalty: float):
         """
         Args:
