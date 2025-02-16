@@ -59,6 +59,7 @@ so that $l$ remains in $[0,1]$.
 
 In practice, you might have a factory of losses:
 ```python
+#Example: Instantiating losses and LossFactory
 loss_factory = LossFactory()
 losses = {
     "nll_loss": loss_factory.create("nll_loss"),
