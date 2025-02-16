@@ -70,7 +70,7 @@ Different variants can be plugged in, as long as they are implemented under the 
 
 ### Metrics
 
-Metrics are used purely for evaluation (e.g., classification accuracy, F1-score, or custom metrics). They need not be bounded, nor do they appear directly in the PAC-Bayes inequality. But they help you diagnose performance.
+Metrics serve solely as evaluation tools, such as classification accuracy, the F1-score, or custom-defined measures. While they do not necessarily have bounded values or appear explicitly in the PAC-Bayes inequality, they provide essential insights for assessing model performance.
 
 ```python
 # Creating typical metrics for evaluation (not necessarily bounded).
