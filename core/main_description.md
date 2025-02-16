@@ -73,7 +73,7 @@ Different variants can be plugged in, as long as they are implemented under the 
 Metrics serve solely as evaluation tools, such as classification accuracy, the F1-score, or custom-defined measures. While they do not necessarily have bounded values or appear explicitly in the PAC-Bayes inequality, they provide essential insights for assessing model performance.
 
 ```python
-# Creating typical metrics for evaluation (not necessarily bounded).
+#Example: Creating metrics for evaluation (not necessarily bounded).
 metric_factory = MetricFactory()
 metrics = {
     "accuracy_micro_metric": metric_factory.create("accuracy_micro_metric"),
@@ -107,6 +107,23 @@ In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The
 
 - `bound_delta` is the $\delta$ from the PAC-Bayes statement.
 - `loss_delta` handles or scales losses, especially when the loss must be numerically bounded.
+
+```python
+#Example: Instantiating a PAC-Bayes Bound with delta parameters
+bound_factory = BoundFactory()
+bounds = {
+    "kl": bound_factory.create(
+        "kl",
+        bound_delta=0.025,   
+        loss_delta=0.01
+    ),
+    "mcallister": bound_factory.create(
+        "mcallister",
+        bound_delta=0.025,
+        loss_delta=0.01
+    )
+}
+```
 
 
 ---
