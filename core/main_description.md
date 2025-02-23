@@ -211,6 +211,7 @@ To train the prior distribution $\pi$, we minimize a PAC-Bayes-inspired objectiv
 
 ```python
 # Example: Prior training with a chosen PAC-Bayes objective
+# (using components created in the sections above)
 train_params = {
     "lr": 0.05,
     "momentum": 0.95,
