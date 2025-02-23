@@ -318,6 +318,10 @@ train(
 )
 ```
 
+### Evaluating and Certifying the Prior
+
+Finally, we evaluate the **posterior** $\rho$ on the test set (if available) and compute the final PAC-Bayes bound on the **bound** set:
+
 ---
 
 ## Links
