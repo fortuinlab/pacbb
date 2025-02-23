@@ -15,5 +15,5 @@ class ObjectiveFactory(AbstractFactory[AbstractObjective]):
         self.register_creator("bbb", BBBObjective)
         self.register_creator("fclassic", FClassicObjective)
         self.register_creator("fquad", FQuadObjective)
-        self.register_creator("mcallister", McAllesterObjective)
+        self.register_creator("mcallester", McAllesterObjective)
         self.register_creator("tolstikhin", TolstikhinObjective)
