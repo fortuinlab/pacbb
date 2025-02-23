@@ -204,6 +204,12 @@ dnn_to_probnn(model, prior, prior_prior)
 model.to(device)
 ```
 
+### Training the Prior
+
+To train the prior distribution $\pi$, we minimize a PAC-Bayes-inspired objective (for instance `fquad`, `bbb`, etc.). Typically, it combines the empirical loss on the prior subset and the KL divergence to a fixed reference. Such training can yield a **data-dependent** prior while preserving correctness if the bound subset is disjoint.
+
+
+
 ---
 
 ## Links
