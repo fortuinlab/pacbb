@@ -240,6 +240,10 @@ train(
 )
 ```
 
+### Evaluating and Certifying the Prior
+At this point, you could evaluate metrics or compute a PAC-Bayes bound on the prior:
+
+
 ---
 
 ## Links
