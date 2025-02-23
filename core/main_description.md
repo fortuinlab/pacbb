@@ -274,6 +274,49 @@ certified_risk = certify_risk(
 
 Next, we initialize the **posterior** $\rho$ from the learned prior weights and refine it, typically on a larger dataset or the same one. We again select an objective that balances empirical loss plus KL$(\rho \|\pi)$:
 
+```python
+# Example: Posterior initialization and training via PAC-Bayes objective.
+# (using components created in the sections above)
+posterior_prior = from_copy(
+    dist=prior, 
+    distribution=GaussianVariable, 
+    requires_grad=False
+)
+posterior = from_copy(
+    dist=prior,
+    distribution=GaussianVariable,
+    requires_grad=True
+)
+update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
+model.to(device)
+
+train_params = {
+    "lr": 0.001,
+    "momentum": 0.9,
+    "epochs": 1,
+    "seed": 1135,
+    "num_samples": strategy.posterior_loader.batch_size *
+    len(strategy.posterior_loader)
+}
+
+objective = objective_factory.create(
+    "fclassic",
+    delta=0.025,
+    kl_penalty=1.0
+)
+
+train(
+    model=model,
+    posterior=posterior,
+    prior=posterior_prior,
+    objective=objective,
+    train_loader=strategy.posterior_loader,
+    val_loader=strategy.val_loader,
+    parameters=train_params,
+    device=device,
+    wandb_params={"log_wandb": True, "name_wandb": "Posterior Train"}
+)
+```
 
 ---
 
