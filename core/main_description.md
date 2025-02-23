@@ -322,6 +322,33 @@ train(
 
 Finally, we evaluate the **posterior** $\rho$ on the test set (if available) and compute the final PAC-Bayes bound on the **bound** set:
 
+```python
+# Example: Evaluating the final posterior (metrics and bound)
+# (using components created in the sections above)
+if strategy.test_loader is not None:
+    posterior_evaluated_metrics = evaluate_metrics(
+        model=model,
+        metrics=metrics,
+        test_loader=strategy.test_loader,
+        num_samples_metric=1000,
+        device=device,
+        pmin=5.0e-05
+    )
+
+posterior_certified_risk = certify_risk(
+    model=model,
+    bounds=bounds,
+    losses=losses,
+    posterior=posterior,
+    prior=posterior_prior,
+    bound_loader=strategy.bound_loader,
+    num_samples_loss=1000,
+    device=device,
+    pmin=5.0e-05
+)
+
+```
+
 ---
 
 ## Links
