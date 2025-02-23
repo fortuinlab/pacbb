@@ -74,7 +74,7 @@ Different variants can be plugged in, as long as they are implemented under the 
 Metrics serve solely as evaluation tools, such as classification accuracy, the F1-score, or custom-defined measures. While they do not necessarily have bounded values or appear explicitly in the PAC-Bayes inequality, they provide essential insights for assessing model performance.
 
 ```python
-#Example: Creating metrics for evaluation (not necessarily bounded).
+# Example: Creating metrics for evaluation (not necessarily bounded).
 metric_factory = MetricFactory()
 metrics = {
     "accuracy_micro_metric": metric_factory.create("accuracy_micro_metric"),
@@ -110,7 +110,7 @@ In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The
 - `loss_delta` handles or scales losses, especially when the loss must be numerically bounded.
 
 ```python
-#Example: Instantiating a PAC-Bayes Bound with delta parameters
+# Example: Instantiating a PAC-Bayes Bound with delta parameters
 bound_factory = BoundFactory()
 bounds = {
     "kl": bound_factory.create(
@@ -137,7 +137,7 @@ To build an informed prior without violating the PAC-Bayes assumptions, we split
 By specifying `prior_type="learnt"`, we indicate in the code below that we intend to select or train a prior distribution from the $\mathcal{S}_{\text{prior}}$ samples, rather than fixing a data-independent prior. The fraction `prior_percent=0.7` means that 70% of the `train_percent` samples go to the prior, while the remaining 30% form $\mathcal{S}_{\text{bound}}$ (with additional splitting if validation/test sets are used). Once split, $\mathcal{S}_{\text{prior}}$ is passed to a training to learn the prior distribution’s parameters.
 
 ```python
-#Example: Splitting dataset into prior/posterior/bound (plus val/test).
+# Example: Splitting dataset into prior/posterior/bound (plus val/test).
 data_loader_factory = DataLoaderFactory()
 loader = data_loader_factory.create(
     "cifar10",
@@ -159,6 +159,14 @@ strategy.split(loader, split_config={
 ```
 Training the prior on $\mathcal{S}_{\text{prior}}$ is what we refer to as "Prior Selection". This data-driven selection ensures the prior distribution is tuned to some portion of the data while still preserving a separate $\mathcal{S}_{\text{bound}}$ for unbiased bound computation.
 
+### Building the Probabilistic Model
+Following [Blundell et al., 2015](https://arxiv.org/abs/1505.05424), each parameter of a PyTorch layer can be represented as a Gaussian with diagonal covariance:
+
+$$
+w_i \sim \mathcal{N}(\mu_i, \sigma_i^2).
+$$
+
+One can then reparametrize or sample from these Gaussians at each forward pass, using techniques such as the local reparametrization trick, Flipout, etc. The code below shows how we convert a deterministic model into a `ProbNN`:
 
 ---
 
