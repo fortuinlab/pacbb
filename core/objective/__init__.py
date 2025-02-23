@@ -5,7 +5,7 @@ loss and KL divergence in different ways.
 
 ## Contents
 - **AbstractObjective**: A base interface
-- **BBBObjective, FClassicObjective, FQuadObjective, McAllisterObjective, TolstikhinObjective**
+- **BBBObjective, FClassicObjective, FQuadObjective, McAllesterObjective, TolstikhinObjective**
 
 By choosing an appropriate objective, you can guide training to minimize
 a PAC-Bayes bound on the model’s risk.
