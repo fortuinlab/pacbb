@@ -244,6 +244,32 @@ train(
 
 At this point, you could evaluate metrics or compute a PAC-Bayes bound on the prior:
 
+```python
+# Example: Prior training with a chosen PAC-Bayes objective
+# (using components created in the sections above)
+if strategy.test_loader is not None:
+    evaluated_metrics = evaluate_metrics(
+        model=model,
+        metrics=metrics,
+        test_loader=strategy.test_loader,
+        num_samples_metric=1000,
+        device=device,
+        pmin=5.0e-05
+    )
+
+certified_risk = certify_risk(
+    model=model,
+    bounds=bounds,
+    losses=losses,
+    posterior=prior,
+    prior=prior_prior,
+    bound_loader=strategy.bound_loader,
+    num_samples_loss=1000,
+    device=device,
+    pmin=5.0e-05
+)
+```
+
 ---
 
 ## Links
