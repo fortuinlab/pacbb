@@ -5,7 +5,7 @@ from torch import Tensor
 from core.objective import AbstractObjective
 
 
-class McAllisterObjective(AbstractObjective):
+class McAllesterObjective(AbstractObjective):
     """
     McAllister bound objective (based on McAllister, 1999 and related works),
     combining empirical loss with a square-root term involving KL and delta,

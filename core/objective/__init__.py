@@ -15,5 +15,5 @@ from core.objective.AbstractObjective import AbstractObjective
 from core.objective.BBBObjective import BBBObjective
 from core.objective.FClassicObjective import FClassicObjective
 from core.objective.FQuadObjective import FQuadObjective
-from core.objective.McAllisterObjective import McAllisterObjective
+from core.objective.McAllesterObjective import McAllesterObjective
 from core.objective.TolstikhinObjective import TolstikhinObjective
