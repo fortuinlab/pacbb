@@ -270,6 +270,11 @@ certified_risk = certify_risk(
 )
 ```
 
+### Creating and Training the Posterior
+
+Next, we initialize the **posterior** $\rho$ from the learned prior weights and refine it, typically on a larger dataset or the same one. We again select an objective that balances empirical loss plus KL$(\rho \|\pi)$:
+
+
 ---
 
 ## Links
