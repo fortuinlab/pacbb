@@ -59,7 +59,7 @@ so that $l$ remains in $[0,1]$.
 
 In practice, you might have a factory of losses:
 ```python
-#Example: Instantiating losses and LossFactory
+# Example: Instantiating losses and LossFactory
 loss_factory = LossFactory()
 losses = {
     "nll_loss": loss_factory.create("nll_loss"),
@@ -167,6 +167,42 @@ w_i \sim \mathcal{N}(\mu_i, \sigma_i^2).
 $$
 
 One can then reparametrize or sample from these Gaussians at each forward pass, using techniques such as the local reparametrization trick, Flipout, etc. The code below shows how we convert a deterministic model into a `ProbNN`:
+
+```python
+# Example: Attaching prior distributions to a model and converting it 
+# to a Probabilistic NN.
+model_factory = ModelFactory()
+model = model_factory.create(
+    "conv15",
+    dataset="cifar10",
+    in_channels=3
+)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+torch.manual_seed(110)
+
+sigma_value = 0.01
+rho_init = torch.log(torch.exp(torch.Tensor([sigma_value])) - 1)
+
+# Create a reference prior (not trainable) and an initial prior (trainable)
+prior_prior = from_zeros(
+    model=model,
+    rho=rho_init,
+    distribution=GaussianVariable,
+    requires_grad=False
+)
+
+prior = from_random(
+    model=model,
+    rho=rho_init,
+    distribution=GaussianVariable,
+    requires_grad=True
+)
+
+dnn_to_probnn(model, prior, prior_prior)
+model.to(device)
+```
 
 ---
 
