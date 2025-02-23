@@ -240,6 +240,84 @@ train(
 )
 ```
 
+### Training the Prior
+
+At this point, you could evaluate metrics or compute a PAC-Bayes bound on the prior:
+
+```python
+# Example: Prior training with a chosen PAC-Bayes objective
+# (using components created in the sections above)
+if strategy.test_loader is not None:
+    evaluated_metrics = evaluate_metrics(
+        model=model,
+        metrics=metrics,
+        test_loader=strategy.test_loader,
+        num_samples_metric=1000,
+        device=device,
+        pmin=5.0e-05
+    )
+
+certified_risk = certify_risk(
+    model=model,
+    bounds=bounds,
+    losses=losses,
+    posterior=prior,
+    prior=prior_prior,
+    bound_loader=strategy.bound_loader,
+    num_samples_loss=1000,
+    device=device,
+    pmin=5.0e-05
+)
+```
+
+### Creating and Training the Posterior
+
+Next, we initialize the **posterior** $\rho$ from the learned prior weights and refine it, typically on a larger dataset or the same one. We again select an objective that balances empirical loss plus KL$(\rho \|\pi)$:
+
+```python
+# Example: Posterior initialization and training via PAC-Bayes objective.
+# (using components created in the sections above)
+posterior_prior = from_copy(
+    dist=prior, 
+    distribution=GaussianVariable, 
+    requires_grad=False
+)
+posterior = from_copy(
+    dist=prior,
+    distribution=GaussianVariable,
+    requires_grad=True
+)
+update_dist(model, weight_dist=posterior, prior_weight_dist=posterior_prior)
+model.to(device)
+
+train_params = {
+    "lr": 0.001,
+    "momentum": 0.9,
+    "epochs": 1,
+    "seed": 1135,
+    "num_samples": strategy.posterior_loader.batch_size *
+    len(strategy.posterior_loader)
+}
+
+objective = objective_factory.create(
+    "fclassic",
+    delta=0.025,
+    kl_penalty=1.0
+)
+
+train(
+    model=model,
+    posterior=posterior,
+    prior=posterior_prior,
+    objective=objective,
+    train_loader=strategy.posterior_loader,
+    val_loader=strategy.val_loader,
+    parameters=train_params,
+    device=device,
+    wandb_params={"log_wandb": True, "name_wandb": "Posterior Train"}
+)
+```
+
 ---
 
 ## Links
