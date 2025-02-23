@@ -1,6 +1,6 @@
-from torch import Tensor
-
 from abc import ABC, abstractmethod
+
+from torch import Tensor
 
 
 class AbstractObjective(ABC):

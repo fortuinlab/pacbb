@@ -11,11 +11,10 @@ class GaussianVariable(AbstractVariable):
 
     def __init__(
         self,
-            mu: Tensor,
-            rho: Tensor,
-            mu_requires_grad:
-            bool = False,
-            rho_requires_grad: bool = False,
+        mu: Tensor,
+        rho: Tensor,
+        mu_requires_grad: bool = False,
+        rho_requires_grad: bool = False,
     ):
         """
         Initialize the GaussianVariable.

@@ -1,5 +1,5 @@
-from torch import nn, Tensor
-import torch.nn.functional as F
+import torch.nn.functional as f
+from torch import Tensor, nn
 
 from core.layer import AbstractProbLayer
 
@@ -12,6 +12,7 @@ class ProbBatchNorm1d(nn.BatchNorm1d, AbstractProbLayer):
     from learned distributions. The forward pass behavior is the same as standard
     batch norm, except the parameters come from `sample_from_distribution`.
     """
+
     def forward(self, input: Tensor) -> Tensor:
         """
         Forward pass for probabilistic batch normalization.
@@ -48,7 +49,7 @@ class ProbBatchNorm1d(nn.BatchNorm1d, AbstractProbLayer):
 
         sampled_weight, sampled_bias = self.sample_from_distribution()
 
-        return F.batch_norm(
+        return f.batch_norm(
             input,
             self.running_mean
             if not self.training or self.track_running_stats

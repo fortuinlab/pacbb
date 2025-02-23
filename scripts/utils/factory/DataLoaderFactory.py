@@ -1,4 +1,4 @@
-from scripts.utils.dataset.loader import AbstractLoader, MNISTLoader, CIFAR10Loader
+from scripts.utils.dataset.loader import AbstractLoader, CIFAR10Loader, MNISTLoader
 from scripts.utils.factory import AbstractFactory
 
 

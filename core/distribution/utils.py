@@ -1,22 +1,24 @@
 import math
-from typing import List, Union, Type, Callable, Dict, Tuple, Iterator
+from collections.abc import Callable, Iterator
 
 import torch
-from torch import nn, Tensor
+from torch import Tensor, nn
 
-from core.layer.utils import get_torch_layers, LayerNameT, get_bayesian_torch_layers
 from core.distribution import AbstractVariable
+from core.layer.utils import LayerNameT, get_bayesian_torch_layers, get_torch_layers
+
+DistributionT = dict[LayerNameT, dict[str, AbstractVariable]]
 
 
-DistributionT = Dict[LayerNameT, Dict[str, AbstractVariable]]
-
-
-def from_ivon(model: nn.Module,
-              optimizer: "ivon.IVON",
-              distribution: Type[AbstractVariable],
-              requires_grad: bool = True,
-              get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
-              ) -> DistributionT:
+def from_ivon(
+    model: nn.Module,
+    optimizer: "ivon.IVON",
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_torch_layers,
+) -> DistributionT:
     """
     Construct a distribution from an IVON optimizer's parameters and Hessian approximations.
 
@@ -39,8 +41,8 @@ def from_ivon(model: nn.Module,
     distributions = {}
     i = 0
     shift = 0
-    weights = optimizer.param_groups[0]['params']
-    hessians = optimizer.param_groups[0]['hess']
+    weights = optimizer.param_groups[0]["params"]
+    hessians = optimizer.param_groups[0]["hess"]
     weight_decay = optimizer.param_groups[0]["weight_decay"]
     ess = optimizer.param_groups[0]["ess"]
     sigma = 1 / (ess * (hessians + weight_decay)).sqrt()
@@ -49,34 +51,41 @@ def from_ivon(model: nn.Module,
     for name, layer in get_layers_func(model):
         if layer.weight is not None:
             weight_cutoff = shift + math.prod(layer.weight.shape)
-            weight_distribution = distribution(mu=weights[i],
-                                               rho=rho[shift: weight_cutoff].reshape(*layer.weight.shape),
-                                               mu_requires_grad=requires_grad,
-                                               rho_requires_grad=requires_grad)
+            weight_distribution = distribution(
+                mu=weights[i],
+                rho=rho[shift:weight_cutoff].reshape(*layer.weight.shape),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
             shift = weight_cutoff
-            i+=1
+            i += 1
         else:
             weight_distribution = None
         if layer.bias is not None:
             bias_cutoff = shift + math.prod(layer.bias.shape)
-            bias_distribution = distribution(mu=weights[i],
-                                             rho=rho[shift: bias_cutoff].reshape(*layer.bias.shape),
-                                             mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+            bias_distribution = distribution(
+                mu=weights[i],
+                rho=rho[shift:bias_cutoff].reshape(*layer.bias.shape),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
             shift = bias_cutoff
-            i+=1
+            i += 1
         else:
             bias_distribution = None
-        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+        distributions[name] = {"weight": weight_distribution, "bias": bias_distribution}
     return distributions
 
 
-def from_flat_rho(model: nn.Module,
-                  rho: Union[Tensor, List[float]],
-                  distribution: Type[AbstractVariable],
-                  requires_grad: bool = True,
-                  get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
-                  ) -> DistributionT:
+def from_flat_rho(
+    model: nn.Module,
+    rho: Tensor | list[float],
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_torch_layers,
+) -> DistributionT:
     """
     Create distributions for each layer using a shared or flat `rho` array.
 
@@ -101,38 +110,43 @@ def from_flat_rho(model: nn.Module,
         if layer.weight is not None:
             # weight_cutoff = shift + layer.out_features * layer.in_features
             weight_cutoff = shift + math.prod(layer.weight.shape)
-            weight_distribution = distribution(mu=layer.weight,
-                                               rho=rho[shift: weight_cutoff].reshape(*layer.weight.shape),
-                                               mu_requires_grad=requires_grad,
-                                               rho_requires_grad=requires_grad)
+            weight_distribution = distribution(
+                mu=layer.weight,
+                rho=rho[shift:weight_cutoff].reshape(*layer.weight.shape),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             weight_distribution = None
         if layer.bias is not None:
             # bias_cutoff = weight_cutoff + layer.out_features
             bias_cutoff = weight_cutoff + math.prod(layer.bias.shape)
-            bias_distribution = distribution(mu=layer.bias,
-                                             rho=rho[weight_cutoff: bias_cutoff].reshape(*layer.bias.shape),
-                                             mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+            bias_distribution = distribution(
+                mu=layer.bias,
+                rho=rho[weight_cutoff:bias_cutoff].reshape(*layer.bias.shape),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
             shift = bias_cutoff
         else:
             bias_distribution = None
             shift = weight_cutoff
-        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+        distributions[name] = {"weight": weight_distribution, "bias": bias_distribution}
     return distributions
 
 
-def _from_any(model: nn.Module,
-              distribution: Type[AbstractVariable],
-              requires_grad: bool,
-              get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]],
-              weight_mu_fill_func: Callable[[nn.Module], Tensor],
-              weight_rho_fill_func: Callable[[nn.Module], Tensor],
-              bias_mu_fill_func: Callable[[nn.Module], Tensor],
-              bias_rho_fill_func: Callable[[nn.Module], Tensor],
-              weight_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'weight'),
-              bias_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, 'bias')
-              ) -> DistributionT:
+def _from_any(
+    model: nn.Module,
+    distribution: type[AbstractVariable],
+    requires_grad: bool,
+    get_layers_func: Callable[[nn.Module], Iterator[tuple[LayerNameT, nn.Module]]],
+    weight_mu_fill_func: Callable[[nn.Module], Tensor],
+    weight_rho_fill_func: Callable[[nn.Module], Tensor],
+    bias_mu_fill_func: Callable[[nn.Module], Tensor],
+    bias_rho_fill_func: Callable[[nn.Module], Tensor],
+    weight_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, "weight"),
+    bias_exists: Callable[[nn.Module], bool] = lambda layer: hasattr(layer, "bias"),
+) -> DistributionT:
     """
     A helper function to create a distribution for each layer in a model using
     user-provided fill functions for `mu` and `rho`.
@@ -155,29 +169,36 @@ def _from_any(model: nn.Module,
     distributions = {}
     for name, layer in get_layers_func(model):
         if weight_exists(layer) and layer.weight is not None:
-            weight_distribution = distribution(mu=weight_mu_fill_func(layer),
-                                               rho=weight_rho_fill_func(layer),
-                                               mu_requires_grad=requires_grad,
-                                               rho_requires_grad=requires_grad)
+            weight_distribution = distribution(
+                mu=weight_mu_fill_func(layer),
+                rho=weight_rho_fill_func(layer),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             weight_distribution = None
         if bias_exists(layer) and layer.bias is not None:
-            bias_distribution = distribution(mu=bias_mu_fill_func(layer),
-                                             rho=bias_rho_fill_func(layer),
-                                             mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+            bias_distribution = distribution(
+                mu=bias_mu_fill_func(layer),
+                rho=bias_rho_fill_func(layer),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             bias_distribution = None
-        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+        distributions[name] = {"weight": weight_distribution, "bias": bias_distribution}
     return distributions
 
 
-def from_random(model: nn.Module,
-                rho: Tensor,
-                distribution: Type[AbstractVariable],
-                requires_grad: bool = True,
-                get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
-                ) -> DistributionT:
+def from_random(
+    model: nn.Module,
+    rho: Tensor,
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_torch_layers,
+) -> DistributionT:
     """
     Create a distribution for each layer with randomly initialized mean (using truncated normal)
     and a constant `rho` value.
@@ -192,27 +213,37 @@ def from_random(model: nn.Module,
     Returns:
         DistributionT: A dictionary containing layer-wise distributions for weights and biases.
     """
+
     def get_truncated_normal_fill_tensor(layer: nn.Module) -> Tensor:
         t = torch.Tensor(*layer.weight.shape)
-        if hasattr(layer, 'weight') and layer.weight is not None:
+        if hasattr(layer, "weight") and layer.weight is not None:
             in_features = math.prod(layer.weight.shape[1:])
         else:
-            raise ValueError(f'Unsupported layer of type: {type(layer)}')
+            raise ValueError(f"Unsupported layer of type: {type(layer)}")
         w = 1 / math.sqrt(in_features)
         return truncated_normal_fill_tensor(t, 0, w, -2 * w, 2 * w)
-    return _from_any(model, distribution, requires_grad, get_layers_func,
-                     weight_mu_fill_func=get_truncated_normal_fill_tensor,
-                     weight_rho_fill_func=lambda layer: torch.ones(*layer.weight.shape) * rho,
-                     bias_mu_fill_func=lambda layer: torch.zeros(*layer.bias.shape),
-                     bias_rho_fill_func=lambda layer: torch.ones(*layer.bias.shape) * rho)
+
+    return _from_any(
+        model,
+        distribution,
+        requires_grad,
+        get_layers_func,
+        weight_mu_fill_func=get_truncated_normal_fill_tensor,
+        weight_rho_fill_func=lambda layer: torch.ones(*layer.weight.shape) * rho,
+        bias_mu_fill_func=lambda layer: torch.zeros(*layer.bias.shape),
+        bias_rho_fill_func=lambda layer: torch.ones(*layer.bias.shape) * rho,
+    )
 
 
-def from_zeros(model: nn.Module,
-               rho: Tensor,
-               distribution: Type[AbstractVariable],
-               requires_grad: bool = True,
-               get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
-               ) -> DistributionT:
+def from_zeros(
+    model: nn.Module,
+    rho: Tensor,
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_torch_layers,
+) -> DistributionT:
     """
     Create distributions for each layer by setting `mu` to zero and `rho` to a constant value.
 
@@ -226,19 +257,27 @@ def from_zeros(model: nn.Module,
     Returns:
         DistributionT: A dictionary mapping layer names to weight/bias distributions.
     """
-    return _from_any(model, distribution, requires_grad, get_layers_func,
-                     weight_mu_fill_func=lambda layer: torch.zeros(*layer.weight.shape),
-                     weight_rho_fill_func=lambda layer: torch.ones(*layer.weight.shape) * rho,
-                     bias_mu_fill_func=lambda layer: torch.zeros(*layer.bias.shape),
-                     bias_rho_fill_func=lambda layer: torch.ones(*layer.bias.shape) * rho)
+    return _from_any(
+        model,
+        distribution,
+        requires_grad,
+        get_layers_func,
+        weight_mu_fill_func=lambda layer: torch.zeros(*layer.weight.shape),
+        weight_rho_fill_func=lambda layer: torch.ones(*layer.weight.shape) * rho,
+        bias_mu_fill_func=lambda layer: torch.zeros(*layer.bias.shape),
+        bias_rho_fill_func=lambda layer: torch.ones(*layer.bias.shape) * rho,
+    )
 
 
-def from_layered(model: torch.nn.Module,
-                 attribute_mapping: dict[str, str],
-                 distribution: Type[AbstractVariable],
-                 requires_grad: bool = True,
-                 get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_torch_layers,
-                 ) -> DistributionT:
+def from_layered(
+    model: torch.nn.Module,
+    attribute_mapping: dict[str, str],
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_torch_layers,
+) -> DistributionT:
     """
     Create distributions by extracting `mu` and `rho` from specified attributes in the model layers.
 
@@ -261,20 +300,44 @@ def from_layered(model: torch.nn.Module,
     Returns:
         DistributionT: A dictionary of distributions keyed by layer names.
     """
-    return _from_any(model, distribution, requires_grad, get_layers_func,
-                     weight_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
-                     bias_exists=lambda layer: hasattr(layer, attribute_mapping['weight_mu']) and hasattr(layer, attribute_mapping['weight_rho']),
-                     weight_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_mu']).detach().clone(),
-                     weight_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['weight_rho']).detach().clone(),
-                     bias_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_mu']).detach().clone(),
-                     bias_rho_fill_func=lambda layer: layer.__getattr__(attribute_mapping['bias_rho']).detach().clone())
+    return _from_any(
+        model,
+        distribution,
+        requires_grad,
+        get_layers_func,
+        weight_exists=lambda layer: hasattr(layer, attribute_mapping["weight_mu"])
+        and hasattr(layer, attribute_mapping["weight_rho"]),
+        bias_exists=lambda layer: hasattr(layer, attribute_mapping["weight_mu"])
+        and hasattr(layer, attribute_mapping["weight_rho"]),
+        weight_mu_fill_func=lambda layer: layer.__getattr__(
+            attribute_mapping["weight_mu"]
+        )
+        .detach()
+        .clone(),
+        weight_rho_fill_func=lambda layer: layer.__getattr__(
+            attribute_mapping["weight_rho"]
+        )
+        .detach()
+        .clone(),
+        bias_mu_fill_func=lambda layer: layer.__getattr__(attribute_mapping["bias_mu"])
+        .detach()
+        .clone(),
+        bias_rho_fill_func=lambda layer: layer.__getattr__(
+            attribute_mapping["bias_rho"]
+        )
+        .detach()
+        .clone(),
+    )
 
 
-def from_bnn(model: nn.Module,
-             distribution: Type[AbstractVariable],
-             requires_grad: bool = True,
-             get_layers_func: Callable[[nn.Module], Iterator[Tuple[LayerNameT, nn.Module]]] = get_bayesian_torch_layers,
-             ) -> DistributionT:
+def from_bnn(
+    model: nn.Module,
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+    get_layers_func: Callable[
+        [nn.Module], Iterator[tuple[LayerNameT, nn.Module]]
+    ] = get_bayesian_torch_layers,
+) -> DistributionT:
     """
     Construct distributions by reading the attributes (e.g., mu_weight, rho_weight, mu_bias, rho_bias)
     from layers typically found in BayesianTorch modules.
@@ -290,33 +353,40 @@ def from_bnn(model: nn.Module,
     """
     distributions = {}
     for name, layer in get_layers_func(model):
-        if hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight'):
-            weight_distribution = distribution(mu=layer.__getattr__('mu_weight').detach().clone(),
-                                               rho=layer.__getattr__('rho_weight').detach().clone(),
-                                               mu_requires_grad=requires_grad,
-                                               rho_requires_grad=requires_grad)
-        elif hasattr(layer, 'mu_kernel') and hasattr(layer, 'rho_kernel'):
-            weight_distribution = distribution(mu=layer.__getattr__('mu_kernel').detach().clone(),
-                                               rho=layer.__getattr__('rho_kernel').detach().clone(),
-                                               mu_requires_grad=requires_grad,
-                                               rho_requires_grad=requires_grad)
+        if hasattr(layer, "mu_weight") and hasattr(layer, "rho_weight"):
+            weight_distribution = distribution(
+                mu=layer.__getattr__("mu_weight").detach().clone(),
+                rho=layer.__getattr__("rho_weight").detach().clone(),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
+        elif hasattr(layer, "mu_kernel") and hasattr(layer, "rho_kernel"):
+            weight_distribution = distribution(
+                mu=layer.__getattr__("mu_kernel").detach().clone(),
+                rho=layer.__getattr__("rho_kernel").detach().clone(),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             weight_distribution = None
-        if hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias'):
-            bias_distribution = distribution(mu=layer.__getattr__('mu_bias').detach().clone(),
-                                             rho=layer.__getattr__('rho_bias').detach().clone(),
-                                             mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+        if hasattr(layer, "mu_bias") and hasattr(layer, "rho_bias"):
+            bias_distribution = distribution(
+                mu=layer.__getattr__("mu_bias").detach().clone(),
+                rho=layer.__getattr__("rho_bias").detach().clone(),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             bias_distribution = None
-        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+        distributions[name] = {"weight": weight_distribution, "bias": bias_distribution}
     return distributions
 
 
-def from_copy(dist: DistributionT,
-              distribution: Type[AbstractVariable],
-              requires_grad: bool = True,
-              ) -> DistributionT:
+def from_copy(
+    dist: DistributionT,
+    distribution: type[AbstractVariable],
+    requires_grad: bool = True,
+) -> DistributionT:
     """
     Create a new distribution by copying `mu` and `rho` from an existing distribution.
 
@@ -326,23 +396,27 @@ def from_copy(dist: DistributionT,
         requires_grad (bool, optional): If True, the new distribution parameters can be updated via gradients.
 
     Returns:
-        DistributionT: A new distribution dictionary with the same layer structure, 
+        DistributionT: A new distribution dictionary with the same layer structure,
         but new `mu` and `rho` parameters cloned from `dist`.
     """
     distributions = {}
     for name, layer in dist.items():
-        weight_distribution = distribution(mu=layer['weight'].mu.detach().clone(),
-                                           rho=layer['weight'].rho.detach().clone(),
-                                           mu_requires_grad=requires_grad,
-                                           rho_requires_grad=requires_grad)
-        if layer['bias'] is not None:
-            bias_distribution = distribution(mu=layer['bias'].mu.detach().clone(),
-                                             rho=layer['bias'].rho.detach().clone(),
-                                             mu_requires_grad=requires_grad,
-                                             rho_requires_grad=requires_grad)
+        weight_distribution = distribution(
+            mu=layer["weight"].mu.detach().clone(),
+            rho=layer["weight"].rho.detach().clone(),
+            mu_requires_grad=requires_grad,
+            rho_requires_grad=requires_grad,
+        )
+        if layer["bias"] is not None:
+            bias_distribution = distribution(
+                mu=layer["bias"].mu.detach().clone(),
+                rho=layer["bias"].rho.detach().clone(),
+                mu_requires_grad=requires_grad,
+                rho_requires_grad=requires_grad,
+            )
         else:
             bias_distribution = None
-        distributions[name] = {'weight': weight_distribution, 'bias': bias_distribution}
+        distributions[name] = {"weight": weight_distribution, "bias": bias_distribution}
     return distributions
 
 
@@ -407,11 +481,11 @@ def truncated_normal_fill_tensor(
     """
     with torch.no_grad():
         # Get upper and lower cdf values
-        l = compute_standard_normal_cdf((a - mean) / std)
-        u = compute_standard_normal_cdf((b - mean) / std)
+        l_ = compute_standard_normal_cdf((a - mean) / std)
+        u_ = compute_standard_normal_cdf((b - mean) / std)
 
-        # Fill tensor with uniform values from [l, u]
-        tensor.uniform_(l, u)
+        # Fill tensor with uniform values from [l_, u_]
+        tensor.uniform_(l_, u_)
 
         # Use inverse cdf transform from normal distribution
         tensor.mul_(2)

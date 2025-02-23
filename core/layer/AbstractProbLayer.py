@@ -1,7 +1,6 @@
 from abc import ABC
-from typing import Tuple
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 from core.distribution import AbstractVariable
 
@@ -14,6 +13,7 @@ class AbstractProbLayer(nn.Module, ABC):
     a layer samples parameters from a distribution or uses deterministic values.
     Each layer holds references to distributions for weights/biases and their prior.
     """
+
     probabilistic_mode: bool
     _weight_dist: AbstractVariable
     _bias_dist: AbstractVariable
@@ -34,10 +34,12 @@ class AbstractProbLayer(nn.Module, ABC):
         if isinstance(self, AbstractProbLayer):
             self.probabilistic_mode = mode
         for module in self.children():
-            if hasattr(module, 'probabilistic_mode') and hasattr(module, 'probabilistic'):
+            if hasattr(module, "probabilistic_mode") and hasattr(
+                module, "probabilistic"
+            ):
                 module.probabilistic(mode)
 
-    def sample_from_distribution(self) -> Tuple[Tensor, Tensor]:
+    def sample_from_distribution(self) -> tuple[Tensor, Tensor]:
         """
         Draw samples for weight and bias from their respective distributions.
 
@@ -61,5 +63,5 @@ class AbstractProbLayer(nn.Module, ABC):
                 sampled_weight = self._weight_dist.mu
                 sampled_bias = self._bias_dist.mu if self._bias_dist else None
             else:
-                raise ValueError('Only training with probabilistic mode is allowed')
+                raise ValueError("Only training with probabilistic mode is allowed")
         return sampled_weight, sampled_bias

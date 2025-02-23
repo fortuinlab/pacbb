@@ -12,6 +12,7 @@ class FClassicObjective(AbstractObjective):
 
     Typically used to ensure a PAC-Bayes bound is minimized during training.
     """
+
     def __init__(self, kl_penalty: float, delta: float):
         """
         Args:
@@ -34,5 +35,7 @@ class FClassicObjective(AbstractObjective):
             Tensor: A scalar objective = loss + sqrt( (KL * kl_penalty + ln(2 sqrt(n)/delta)) / (2n) ).
         """
         kl = kl * self._kl_penalty
-        kl_ratio = torch.div(kl + np.log((2 * np.sqrt(num_samples)) / self._delta), 2 * num_samples)
+        kl_ratio = torch.div(
+            kl + np.log((2 * np.sqrt(num_samples)) / self._delta), 2 * num_samples
+        )
         return loss + torch.sqrt(kl_ratio)

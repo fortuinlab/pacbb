@@ -1,26 +1,27 @@
-import yaml
-import os
 import logging
+import os
 from datetime import datetime
+
+import yaml
 
 
 def load_config(config_path: str):
-    with open(config_path, 'r') as file:
+    with open(config_path) as file:
         config = yaml.safe_load(file)
     return config
 
 
 def get_wandb_name(config_path: str):
-    prefix = './config/'
-    postfix = '.yaml'
+    prefix = "./config/"
+    postfix = ".yaml"
 
     # Remove prefix
     if config_path.startswith(prefix):
-        config_path = config_path[len(prefix):]
+        config_path = config_path[len(prefix) :]
 
     # Remove postfix
     if config_path.endswith(postfix):
-        config_path = config_path[:-len(postfix)]
+        config_path = config_path[: -len(postfix)]
 
     # Add timestamp
     timestamp = datetime.now().strftime("%d%m_%H%M")
@@ -28,8 +29,8 @@ def get_wandb_name(config_path: str):
     return f"{config_path}_{timestamp}"
 
 
-def setup_logging(config_path: str, logging_dir: str = 'logs'):
-    relative_log_path = config_path.replace('./config/', '').replace('.yaml', '.log')
+def setup_logging(config_path: str, logging_dir: str = "logs"):
+    relative_log_path = config_path.replace("./config/", "").replace(".yaml", ".log")
 
     log_file_path = os.path.join(logging_dir, relative_log_path)
 
@@ -40,11 +41,11 @@ def setup_logging(config_path: str, logging_dir: str = 'logs'):
     # Configure logging to write to both file and console, flush real-time
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.FileHandler(log_file_path, mode='w'),
-            logging.StreamHandler()
-        ]
+            logging.FileHandler(log_file_path, mode="w"),
+            logging.StreamHandler(),
+        ],
     )
 
     logging.info(f"Logging setup complete. Logs will be saved to {log_file_path}")

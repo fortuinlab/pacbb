@@ -1,5 +1,4 @@
-from core.bound import AbstractBound, McAllesterBound, KLBound
-
+from core.bound import AbstractBound, KLBound, McAllesterBound
 from scripts.utils.factory import AbstractFactory
 
 

@@ -7,11 +7,10 @@ from core.distribution import AbstractVariable
 class LaplaceVariable(AbstractVariable):
     def __init__(
         self,
-            mu: Tensor,
-            rho: Tensor,
-            mu_requires_grad:
-            bool = False,
-            rho_requires_grad: bool = False,
+        mu: Tensor,
+        rho: Tensor,
+        mu_requires_grad: bool = False,
+        rho_requires_grad: bool = False,
     ):
         """
         Initialize the LaplaceVariable.
@@ -33,7 +32,10 @@ class LaplaceVariable(AbstractVariable):
         """
         epsilon = 0.999 * torch.rand(self.sigma.size()) - 0.49999
         epsilon = epsilon.to(self.mu.device)
-        return self.mu - torch.mul(torch.mul(self.scale, torch.sign(epsilon)), torch.log(1-2*torch.abs(epsilon)))
+        return self.mu - torch.mul(
+            torch.mul(self.scale, torch.sign(epsilon)),
+            torch.log(1 - 2 * torch.abs(epsilon)),
+        )
 
     def compute_kl(self, other: "LaplaceVariable") -> Tensor:
         """

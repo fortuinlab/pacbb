@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from torch.utils import data
 
@@ -9,5 +8,5 @@ class AbstractLoader(ABC):
         self._dataset_path = dataset_path
 
     @abstractmethod
-    def load(self, seed: int) -> Tuple[data.Dataset, data.Dataset]:
+    def load(self, seed: int) -> tuple[data.Dataset, data.Dataset]:
         pass

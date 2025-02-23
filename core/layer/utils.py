@@ -1,16 +1,15 @@
-from typing import List, Callable, Iterator, Tuple
+from collections.abc import Callable, Iterator
 
 import torch.nn as nn
 
 from core.layer import supported_layers
 
+LayerNameT = tuple[str, ...]
 
-LayerNameT = Tuple[str, ...]
 
-
-def get_layers(model: nn.Module,
-               is_layer_func: Callable[[nn.Module], bool],
-               names: List[str]) -> Iterator[Tuple[LayerNameT, nn.Module]]:
+def get_layers(
+    model: nn.Module, is_layer_func: Callable[[nn.Module], bool], names: list[str]
+) -> Iterator[tuple[LayerNameT, nn.Module]]:
     """
     Recursively traverse a PyTorch model to find layers matching a given criterion.
 
@@ -44,10 +43,13 @@ def is_torch_layer(layer: nn.Module) -> bool:
     Returns:
         bool: True if the layer's type is one of the framework's supported mappings.
     """
-    return any([isinstance(layer, torch_layer) for torch_layer in supported_layers.LAYER_MAPPING])
+    return any(
+        isinstance(layer, torch_layer)
+        for torch_layer in supported_layers.LAYER_MAPPING
+    )
 
 
-def get_torch_layers(model: nn.Module) -> Iterator[Tuple[LayerNameT, nn.Module]]:
+def get_torch_layers(model: nn.Module) -> Iterator[tuple[LayerNameT, nn.Module]]:
     """
     Yield all supported PyTorch layers in the model.
 
@@ -72,13 +74,22 @@ def is_bayesian_torch_layer(layer: nn.Module) -> bool:
     Returns:
         bool: True if the layer has BayesianTorch parameter attributes.
     """
-    return ((hasattr(layer, 'mu_weight') and hasattr(layer, 'rho_weight') and
-             hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias')) or
-            (hasattr(layer, 'mu_kernel') and hasattr(layer, 'rho_kernel') and
-             hasattr(layer, 'mu_bias') and hasattr(layer, 'rho_bias')))
+    return (
+        hasattr(layer, "mu_weight")
+        and hasattr(layer, "rho_weight")
+        and hasattr(layer, "mu_bias")
+        and hasattr(layer, "rho_bias")
+    ) or (
+        hasattr(layer, "mu_kernel")
+        and hasattr(layer, "rho_kernel")
+        and hasattr(layer, "mu_bias")
+        and hasattr(layer, "rho_bias")
+    )
 
 
-def get_bayesian_torch_layers(model: nn.Module) -> Iterator[Tuple[LayerNameT, nn.Module]]:
+def get_bayesian_torch_layers(
+    model: nn.Module,
+) -> Iterator[tuple[LayerNameT, nn.Module]]:
     """
     Yield all layers in the model recognized as BayesianTorch layers,
     i.e., those containing 'mu_weight', 'rho_weight', etc.

@@ -10,6 +10,7 @@ class FQuadObjective(AbstractObjective):
     A "f-quad" objective from Perez-Ortiz et al. (2021), which involves
     a quadratic expression derived from the PAC-Bayes bound.
     """
+
     def __init__(self, kl_penalty: float, delta: float):
         """
         Args:
@@ -36,7 +37,9 @@ class FQuadObjective(AbstractObjective):
             Tensor: The scalar objective value.
         """
         kl = kl * self._kl_penalty
-        kl_ratio = torch.div(kl + np.log((2 * np.sqrt(num_samples)) / self._delta), 2 * num_samples)
+        kl_ratio = torch.div(
+            kl + np.log((2 * np.sqrt(num_samples)) / self._delta), 2 * num_samples
+        )
         first_term = torch.sqrt(loss + kl_ratio)
         second_term = torch.sqrt(kl_ratio)
         return torch.pow(first_term + second_term, 2)

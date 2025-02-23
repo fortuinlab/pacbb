@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Union
 
 from torch import Tensor
 
@@ -26,7 +25,7 @@ class AbstractBound(ABC):
         self._loss_delta = loss_delta
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> Tuple[Union[Tensor, float], Union[Tensor, float]]:
+    def calculate(self, *args, **kwargs) -> tuple[Tensor | float, Tensor | float]:
         """
         Calculates the PAC Bayes bound.
 
