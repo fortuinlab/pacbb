@@ -28,13 +28,21 @@ $$
 \mathbb{E}_{\theta \sim \rho} [R(\theta)] 
 \;\;\leq\;\;
 \underbrace{ \mathbb{E}_{\theta \sim \rho} [r(\theta)] }_{\text{empirical loss}}
-\;+\;\mathrm{Complexity}\bigl(KL(\rho \| \pi),\, n\bigr),
+\;+\;\Phi\bigl(\mathrm{D}(\rho\|\pi),\,n,\,\epsilon\bigr),
 $$
 
-where $\rho$ is a posterior distribution over parameters, 
-$\pi$ is a prior, $r(\theta)$ is the empirical loss 
-(e.g., on a training or bound dataset), and 
-$R(\theta)$ is the (unknown) true risk.
+where:
+- $R(\theta)$ is the (unknown) true risk,
+- $r(\theta)$ is the empirical loss (e.g., computed on a training or validation dataset),
+- $\rho$ is the posterior distribution over parameters,
+- $\pi$ is the prior distribution,
+- $n$ is the dataset size,
+- $\epsilon$ is a confidence parameter,
+- $\mathrm{D}(\rho\|\pi)$ is a divergence measure between the posterior and prior,
+- $\Phi(\cdot)$ is a function that depends on the divergence, dataset size, and confidence parameter.
+
+This bound illustrates how the generalization performance of a model depends not only on the empirical loss but also on the complexity of the posterior relative to the prior, as captured by the divergence term.
+
 
 In practice, one typically:
 
