@@ -328,7 +328,7 @@ train(
 
 ### Evaluating and Certifying the Posterior
 
-Finally, we evaluate the **posterior** $\rho$ on the test set (if available) and compute the final PAC-Bayes bound on the **bound set**:
+Finally, we evaluate the **posterior** $\rho$ and compute the metrics on the test set (if available) and compute the final PAC-Bayes bound on the **bound set**:
 
 ```python
 # Example: Evaluating the final posterior (metrics and bound)
