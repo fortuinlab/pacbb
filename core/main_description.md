@@ -28,7 +28,7 @@ $$
 \mathbb{E}_{\theta \sim \rho} [R(\theta)] 
 \;\;\leq\;\;
 \underbrace{ \mathbb{E}_{\theta \sim \rho} [r(\theta)] }_{\text{empirical loss}}
-\;+\;\Phi\bigl(\mathrm{D}(\rho\|\pi),\,n,\,\epsilon\bigr),
+\;+\;\Phi\bigl(\mathrm{D}(\rho\|\pi),\,n,\,\delta\bigr),
 $$
 
 where:
@@ -37,7 +37,7 @@ where:
 - $\rho$ is the posterior distribution over parameters,
 - $\pi$ is the prior distribution,
 - $n$ is the dataset size,
-- $\epsilon$ is a confidence parameter,
+- $\delta$ is a confidence parameter,
 - $\mathrm{D}(\rho\|\pi)$ is a divergence measure between the posterior and prior,
 - $\Phi(\cdot)$ is a function that depends on the divergence, dataset size, and confidence parameter.
 
@@ -107,14 +107,14 @@ $$
 \,\le\,
 \mathbb{E}_{\theta\sim\rho}[r(\theta)]
 \;+\;
-\Phi(KL(\rho\|\pi),\,n,\,\epsilon),
+\Phi(KL(\rho\|\pi),\,n,\,\delta),
 $$
 
 where:
 
 - $KL(\rho \|\pi)$ measures how far the posterior $\rho$ is from the prior $\pi$.
 - $n$ is the effective number of data samples used in the bound. In a data-splitting scenario, it often corresponds to the size of the bound set, and in code it is usually deduced from the `bound_loader` (for example by `len(bound_loader.dataset)`).
-- $\epsilon$ is a confidence parameter. The bound holds with probability at least $1 - \epsilon$.
+- $\delta$ is a confidence parameter. The bound holds with probability at least $1 - \delta$.
 
 In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The parameter `loss_delta` is a separate hyperparameter for bounding or adjusting the loss term in practice. For instance, one might cap a negative log-likelihood at $\log(1/p_{\min})$ or include a data-driven threshold. While usage can vary by codebase, typically:
 
