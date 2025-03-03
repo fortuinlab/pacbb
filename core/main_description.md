@@ -28,13 +28,21 @@ $$
 \mathbb{E}_{\theta \sim \rho} [R(\theta)] 
 \;\;\leq\;\;
 \underbrace{ \mathbb{E}_{\theta \sim \rho} [r(\theta)] }_{\text{empirical loss}}
-\;+\;\mathrm{Complexity}\bigl(KL(\rho \| \pi),\, n\bigr),
+\;+\;\Phi\bigl(\mathrm{D}(\rho\|\pi),\,n,\,\epsilon\bigr),
 $$
 
-where $\rho$ is a posterior distribution over parameters, 
-$\pi$ is a prior, $r(\theta)$ is the empirical loss 
-(e.g., on a training or bound dataset), and 
-$R(\theta)$ is the (unknown) true risk.
+where:
+- $R(\theta)$ is the (unknown) true risk,
+- $r(\theta)$ is the empirical loss (e.g., computed on a training or validation dataset),
+- $\rho$ is the posterior distribution over parameters,
+- $\pi$ is the prior distribution,
+- $n$ is the dataset size,
+- $\epsilon$ is a confidence parameter,
+- $\mathrm{D}(\rho\|\pi)$ is a divergence measure between the posterior and prior,
+- $\Phi(\cdot)$ is a function that depends on the divergence, dataset size, and confidence parameter.
+
+This bound illustrates how the generalization performance of a model depends not only on the empirical loss but also on the complexity of the posterior relative to the prior, as captured by the divergence term.
+
 
 In practice, one typically:
 
@@ -60,6 +68,8 @@ so that $l$ remains in $[0,1]$.
 In practice, you might have a factory of losses:
 ```python
 # Example: Instantiating losses and LossFactory
+from scripts.utils.factory import LossFactory
+
 loss_factory = LossFactory()
 losses = {
     "nll_loss": loss_factory.create("nll_loss"),
@@ -75,6 +85,8 @@ Metrics serve solely as evaluation tools, such as classification accuracy, the F
 
 ```python
 # Example: Creating metrics for evaluation (not necessarily bounded).
+from scripts.utils.factory import MetricFactory
+
 metric_factory = MetricFactory()
 metrics = {
     "accuracy_micro_metric": metric_factory.create("accuracy_micro_metric"),
@@ -95,14 +107,14 @@ $$
 \,\le\,
 \mathbb{E}_{\theta\sim\rho}[r(\theta)]
 \;+\;
-\mathrm{Complexity}(KL(\rho \| \pi),\, n, \delta),
+\Phi(KL(\rho\|\pi),\,n,\,\epsilon),
 $$
 
 where:
 
 - $KL(\rho \|\pi)$ measures how far the posterior $\rho$ is from the prior $\pi$.
 - $n$ is the effective number of data samples used in the bound. In a data-splitting scenario, it often corresponds to the size of the bound set, and in code it is usually deduced from the `bound_loader` (for example by `len(bound_loader.dataset)`).
-- $\delta$ is a confidence parameter. The bound holds with probability at least $1 - \delta$.
+- $\epsilon$ is a confidence parameter. The bound holds with probability at least $1 - \epsilon$.
 
 In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The parameter `loss_delta` is a separate hyperparameter for bounding or adjusting the loss term in practice. For instance, one might cap a negative log-likelihood at $\log(1/p_{\min})$ or include a data-driven threshold. While usage can vary by codebase, typically:
 
@@ -111,6 +123,8 @@ In the snippet below, `bound_delta` corresponds to the theoretical $\delta$. The
 
 ```python
 # Example: Instantiating a PAC-Bayes Bound with delta parameters
+from scripts.utils.factory import BoundFactory
+
 bound_factory = BoundFactory()
 bounds = {
     "kl": bound_factory.create(
@@ -138,6 +152,9 @@ By specifying `prior_type="learnt"`, we indicate in the code below that we inten
 
 ```python
 # Example: Splitting dataset into prior/posterior/bound (plus val/test).
+from core.split_strategy import PBPSplitStrategy
+from scripts.utils.factory import DataLoaderFactory
+
 data_loader_factory = DataLoaderFactory()
 loader = data_loader_factory.create(
     "cifar10",
@@ -171,6 +188,12 @@ One can then reparametrize or sample from these Gaussians at each forward pass, 
 ```python
 # Example: Attaching prior distributions to a model and converting it 
 # to a Probabilistic NN.
+import torch
+from core.distribution import GaussianVariable
+from core.distribution.utils import from_zeros, from_random
+from core.model import dnn_to_probnn
+from scripts.utils.factory import ModelFactory
+
 model_factory = ModelFactory()
 model = model_factory.create(
     "conv15",
@@ -212,6 +235,9 @@ To train the prior distribution $\pi$, we minimize a PAC-Bayes-inspired objectiv
 ```python
 # Example: Prior training with a chosen PAC-Bayes objective
 # (using components created in the sections above)
+from core.training import train
+from scripts.utils.factory import ObjectiveFactory
+
 train_params = {
     "lr": 0.05,
     "momentum": 0.95,
@@ -240,13 +266,16 @@ train(
 )
 ```
 
-### Training the Prior
+### Evaluating the Prior
 
 At this point, you could evaluate metrics or compute a PAC-Bayes bound on the prior:
 
 ```python
 # Example: Prior training with a chosen PAC-Bayes objective
 # (using components created in the sections above)
+from core.metric import evaluate_metrics
+from core.risk import certify_risk
+
 if strategy.test_loader is not None:
     evaluated_metrics = evaluate_metrics(
         model=model,
@@ -277,6 +306,13 @@ Next, we initialize the **posterior** $\rho$ from the learned prior weights and 
 ```python
 # Example: Posterior initialization and training via PAC-Bayes objective.
 # (using components created in the sections above)
+import torch
+from core.distribution import GaussianVariable
+from core.distribution.utils import from_copy
+from core.model import update_dist
+from core.training import train
+from scripts.utils.factory import ObjectiveFactory
+
 posterior_prior = from_copy(
     dist=prior, 
     distribution=GaussianVariable, 
@@ -320,11 +356,14 @@ train(
 
 ### Evaluating and Certifying the Posterior
 
-Finally, we evaluate the **posterior** $\rho$ on the test set (if available) and compute the final PAC-Bayes bound on the **bound set**:
+Finally, we evaluate the **posterior** $\rho$ in the following way: calculate the metrics on the test set (if available) and compute the final PAC-Bayes bound on the **bound set**:
 
 ```python
 # Example: Evaluating the final posterior (metrics and bound)
 # (using components created in the sections above)
+from core.metric import evaluate_metrics
+from core.risk import certify_risk
+
 if strategy.test_loader is not None:
     posterior_evaluated_metrics = evaluate_metrics(
         model=model,
