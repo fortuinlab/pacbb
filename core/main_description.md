@@ -15,7 +15,7 @@ probabilistic neural networks under the PAC-Bayes paradigm.
 ## PAC-Bayes Framework: Theory and Practice
 
 **Note:** The explanations below are demonstrated using an actual working script. You can directly run it from the repository:  
-[https://github.com/Yauhenii/pacbb/blob/main/scripts/generic_train.py](https://github.com/Yauhenii/pacbb/blob/main/scripts/generic_train.py)  
+[https://github.com/fortuinlab/pacbb/blob/main/scripts/generic_train.py](https://github.com/fortuinlab/pacbb/blob/main/scripts/generic_train.py)  
 This script implements a complete training pipeline including prior/posterior training, data splitting, and final PAC-Bayes bound certification.
 
 ---
