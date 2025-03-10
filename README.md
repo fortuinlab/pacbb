@@ -12,10 +12,10 @@ We have prepared an arXiv paper that outlines the structure of ```pacbb```, demo
 
 ## Links
 
-- **Documentation**: [https://fortuinlab.github.io/pacbb/core.html)
+- **Documentation**: https://fortuinlab.github.io/pacbb/core.html
 - **PyPI**: [https://pypi.org/project/pacbb/](https://pypi.org/project/pacbb/)
-- **Source Code**: [https://github.com/fortuinlab/pacbb)
-- **Issues**: [https://github.com/fortuinlab/pacbb/issues)
+- **Source Code**: https://github.com/fortuinlab/pacbb
+- **Issues**: https://github.com/fortuinlab/pacbb/issues
 - **ArXiv**: [TODO](https://google.com)
 
 ## Installation
