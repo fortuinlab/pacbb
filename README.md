@@ -1,3 +1,5 @@
+# PAC Bayes Bounds Framework - A Toolkit for PAC-Bayes Analysis
+
 [![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://yauhenii.github.io/pacbb/core.html)
 [![PyPI](https://img.shields.io/pypi/v/pacbb.svg)](https://pypi.org/project/pacbb/)
 [![GitHub release](https://img.shields.io/github/release/yauhenii/pacbb.svg)](https://github.com/yauhenii/pacbb/releases)
