@@ -15,10 +15,10 @@ We have prepared an arXiv paper that outlines the structure of ```pacbb```, demo
 ## Links
 
 - **Documentation**: https://fortuinlab.github.io/pacbb/core.html
+- **PDF**: https://github.com/fortuinlab/pacbb/blob/main/doc/pacbb.pdf
 - **PyPI**: [https://pypi.org/project/pacbb/](https://pypi.org/project/pacbb/)
 - **Source Code**: https://github.com/fortuinlab/pacbb
 - **Issues**: https://github.com/fortuinlab/pacbb/issues
-- **PDF**: https://github.com/fortuinlab/pacbb/blob/main/doc/pacbb.pdf
 
 ## Installation
 
