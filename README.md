@@ -18,7 +18,7 @@ We have prepared an arXiv paper that outlines the structure of ```pacbb```, demo
 - **PyPI**: [https://pypi.org/project/pacbb/](https://pypi.org/project/pacbb/)
 - **Source Code**: https://github.com/fortuinlab/pacbb
 - **Issues**: https://github.com/fortuinlab/pacbb/issues
-- **ArXiv**: [TODO](https://google.com)
+- **PDF**: https://github.com/fortuinlab/pacbb/blob/main/doc/pacbb.pdf
 
 ## Installation
 
