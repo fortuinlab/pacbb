@@ -118,3 +118,18 @@ Special thanks to **Vincent Fortuin** and **Alex Immer** for their supervision, 
 * **Yauhenii** (Yauheni Mardan)
 
 * **maxtretiakov** (Maksym Tretiakov)
+
+## Citing
+
+If you use this code, please cite as:
+```sh
+@software{mardan2025pacbbframework,
+  author       = {Yauheni Mardan and Maksym Tretiakov and Alexander Immer and Vincent Fortuin},               
+  title        = {pacbb: PAC-Bayes Bounds Evaluation Framework},
+  month        = march,
+  year         = 2025,
+  doi          = {10.5281/zenodo.15082669},
+  url          = {https://doi.org/10.5281/zenodo.15082670}
+  howpublished = {https://github.com/fortuinlab/pacbb}
+}
+```
