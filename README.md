@@ -128,8 +128,8 @@ If you use this code, please cite as:
   title        = {pacbb: PAC-Bayes Bounds Evaluation Framework},
   month        = {march},
   year         = {2025},
-  doi          = {10.5281/zenodo.15082669},
-  url          = {https://doi.org/10.5281/zenodo.15082670}
+  doi          = {10.5281/zenodo.15085531},
+  url          = {https://doi.org/10.5281/zenodo.15085531}
   howpublished = {https://github.com/fortuinlab/pacbb}
 }
 ```
