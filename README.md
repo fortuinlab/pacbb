@@ -10,7 +10,7 @@
 
 The `pacbb` repository provides a collection of handy tools for PAC Bayes bounds evaluation. It is designed to simplify the work of PAC Bayes enthusiasts by offering various utilities and resources for easier implementation and experimentation.
 
-We have prepared an arXiv paper that outlines the structure of ```pacbb```, demonstrates its usage, structure, and presents a series of experiments conducted using the toolkit.
+We have prepared a pdf documentation that outlines the structure of ```pacbb```, demonstrates its usage, structure, and presents a series of experiments conducted using the toolkit.
 
 ## Links
 
