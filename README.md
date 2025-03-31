@@ -54,7 +54,7 @@ prior = from_random(model=model,
 dnn_to_probnn(model, prior, prior_reference)
 ```
 
-Distributions creation and model conversion are explained in details in the arXive paper.
+Distribution creation and model conversion are explained in detail in the PDF above.
 
 ## Experiments
 
