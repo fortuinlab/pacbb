@@ -24,16 +24,21 @@ def train(model: nn.Module,
           wandb_params: Dict = None,
         ):
     criterion = torch.nn.NLLLoss()
-    optimizer = torch.optim.SGD(model.parameters(),
-                                lr=parameters['lr'],
-                                momentum=parameters['momentum'])
+    #optimizer = torch.optim.SGD(model.parameters(),
+    #                            lr=parameters['lr'],
+    #                            momentum=parameters['momentum'])
 
+    #just to try
+    optimizer = torch.optim.Adam(model.parameters(),
+                                 lr=parameters['lr'])
     if 'seed' in parameters:
         torch.manual_seed(parameters['seed'])
 
     loss = None
     kl = None
     objective_value = None
+
+    dataset_size = len(train_loader.dataset) # new added
 
     for epoch in range(parameters['epochs']):
         for i, (data, target) in tqdm(enumerate(train_loader)):
@@ -49,7 +54,7 @@ def train(model: nn.Module,
                 objective_value = objective.calculate(loss, kl, parameters['num_samples'])
             elif isinstance(objective, AbstractSamplingObjective):
                 losses = []
-                for i in range(objective.n):
+                for j in range(objective.n):
                     if 'pmin' in parameters:
                         output = bounded_call(model, data, parameters['pmin'])
                     else:
@@ -63,14 +68,17 @@ def train(model: nn.Module,
                                                       data,
                                                       target,
                                                       epoch=epoch,
-                                                      batch=i,
+                                                      batch_idx=i,
+                                                      dataset_size= dataset_size,
                                                       pmin=parameters.get('pmin', None),
                                                       wandb_params=wandb_params)
-                loss = criterion(model(data), target)
-                kl = compute_kl(posterior, prior)
+                with torch.no_grad():
+                    loss = criterion(model(data), target)
+                    kl = compute_kl(posterior, prior)
             else:
                 raise ValueError(f'Invalid objective type: {type(objective)}')
             objective_value.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
             optimizer.step()
         logging.info(f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl/parameters['num_samples']}")
         if wandb_params is not None and wandb_params["log_wandb"]:

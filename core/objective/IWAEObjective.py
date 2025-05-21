@@ -58,19 +58,28 @@ class IWAEObjective:
         wandb_params: Optional[Dict] = None,
     ) -> Tensor:
 
+
         batch_size = data.size(0)
         scale = dataset_size / batch_size           # N / |B|
         log_ws = []                                 # list[k] of scalars
 
+        kl_pen = 1 / dataset_size
+        temp = 1.0
+
         for l in range(self.k):
             # sample w and compute log p(x|w)
             logits = bounded_call(model, data, pmin) if pmin is not None else model(data)
+
+            if torch.isnan(logits).any() or torch.isinf(logits).any():
+                logging.warning(f"NaN/Inf in logits at epoch {epoch}, batch {batch_idx}")
+                logits = torch.where(torch.isfinite(logits), logits, torch.zeros_like(logits))
+
             log_px = dists.Categorical(logits=logits).log_prob(target)   # (batch,)
             log_lik = scale * log_px.sum()                               # scalar
 
             # global KL part
-            kl = (self._log_prior(model) - self._log_post(model)) * self.kl_penalty
-            log_w = log_lik + self.temperature * kl                      # scalar
+            kl = (self._log_prior(model) - self._log_post(model)) * kl_pen
+            log_w = log_lik + temp * kl                      # scalar
             log_ws.append(log_w)
 
             # -------------------- per-sample logging --------------------
