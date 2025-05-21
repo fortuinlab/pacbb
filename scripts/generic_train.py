@@ -20,7 +20,7 @@ from scripts.utils.factory import (LossFactory,
 logging.basicConfig(level=logging.INFO)
 
 config = {
-    'log_wandb': True,
+    'log_wandb': False,
     'mcsamples': 1000,
     'pmin': 1e-5,
     'sigma': 0.01,
@@ -62,7 +62,7 @@ config = {
             #                                # 'delta': 0.025
             #                                }
             #                     },
-            'prior_objective': {'name': 'iwae',
+            'prior_objective': {'name': 'iwae',#iwae or naive iwae from objective factory
                                 'params': {'kl_penalty': 0.001,
                                            'n': 10,
                                            'temperature': 1e-4,
