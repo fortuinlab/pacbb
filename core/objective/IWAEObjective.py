@@ -67,7 +67,7 @@ class IWAEObjective(AbstractObjective):
         log_ws = []                                 # list[k] of scalars
 
         temp = self.temperature
-        beta = min(1.0, (epoch / 40) ** 2)
+        beta = min(1.0, (epoch / 70) ** 2)
 
         for l in range(self.k):
             # sample w and compute log p(x|w)
