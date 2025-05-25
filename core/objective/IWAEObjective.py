@@ -105,10 +105,11 @@ class IWAEObjective(AbstractObjective):
         if wandb_params and wandb_params.get("log_wandb", False) and False:
             wandb.log({f"{wandb_params['name_wandb']}/iwae_loss": loss})
 
-        logging.info(
-            f"[Epoch {epoch:03d} | Batch {batch_idx:04d}] "
-            f"IWAE-loss {loss.item():.4f} "
-            f"| mean log_px {(log_px.mean()).item():.4f} "
-            f"| KL {kl.item():.2f}"
-        )
+        if batch_idx % 50 == 0:
+            logging.info(
+                f"[Epoch {epoch:03d} | Batch {batch_idx:04d}] "
+                f"IWAE-loss {loss.item():.4f} "
+                f"| mean log_px {(log_px.mean()).item():.4f} "
+                f"| KL {kl.item():.2f}"
+            )
         return loss
