@@ -17,3 +17,4 @@ from core.objective.FClassicObjective import FClassicObjective
 from core.objective.FQuadObjective import FQuadObjective
 from core.objective.McAllesterObjective import McAllesterObjective
 from core.objective.TolstikhinObjective import TolstikhinObjective
+from core.objective.IWAEObjective import IWAEObjective
