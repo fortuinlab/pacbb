@@ -24,7 +24,7 @@ from scripts.utils.factory import (
 
 def main(config: dict, config_path: str):
     if config["log_wandb"]:
-        wandb.init(project="pbb_paper", config=config, name=get_wandb_name(config_path))
+        wandb.init(project="pbb_iwae", config=config, name=get_wandb_name(config_path))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Device {device}")
     # Losses

@@ -39,13 +39,13 @@ mcsamples: 1000
 pmin: 5.0e-05
 posterior:
   training:
-    epochs: 25
+    epochs: 1
     lr: 0.0001
     momentum: 0.9
     seed: 1135
 prior:
   training:
-    epochs: 10
+    epochs: 100
     lr: 0.0001
     momentum: 0.95
     seed: 1135
