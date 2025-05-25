@@ -13,9 +13,9 @@ class IWAEObjective(AbstractObjective):
     def __init__(self, kl_penalty: float, n: int, temperature: float = 1.0) -> None:
         self.kl_penalty = kl_penalty      # usually 1 / |D|
         self.temperature = temperature
-        self.k=n
-        print(self.temperature)
-        print(self.k)
+        self.k = n
+        logging.debug(f"IWAE temperature {self.temperature}")
+        logging.debug(f"IWAE k {self.k}")
 
     # -------- helpers to compute log p(w) and log q(w) -------------------
     @staticmethod
@@ -61,7 +61,6 @@ class IWAEObjective(AbstractObjective):
         wandb_params: Optional[Dict] = None,
     ) -> Tensor:
 
-
         batch_size = data.size(0)
         scale = dataset_size / batch_size           # N / |B|
         log_ws = []                                 # list[k] of scalars
@@ -86,7 +85,7 @@ class IWAEObjective(AbstractObjective):
             log_ws.append(log_w)
 
             # -------------------- per-sample logging --------------------
-            if wandb_params and wandb_params.get("log_wandb", False):
+            if wandb_params and wandb_params.get("log_wandb", False) and False:
                 tag = wandb_params["name_wandb"]
                 wandb.log({
                     f"{tag}/epoch": epoch,
@@ -96,20 +95,20 @@ class IWAEObjective(AbstractObjective):
                     f"{tag}/kl": kl.detach(),
                     f"{tag}/log_weight": log_w.detach(),
                 })
+            # logging.info(f"[Inner Log] Epoch {epoch}, Batch {batch_idx}, Sample {l} | log_lik={log_lik.item():.4f}, kl={kl.item():.4f}, log_w={log_w.item():.4f}")
 
         # ----------- PB-IWAE loss (one scalar) ---------------------------
         log_ws_tensor = torch.stack(log_ws)           # (k,)
         loss = -(torch.logsumexp(log_ws_tensor, dim=0) - math.log(self.k))
 
         # ----------- final logging --------------------------------------
-        if wandb_params and wandb_params.get("log_wandb", False):
+        if wandb_params and wandb_params.get("log_wandb", False) and False:
             wandb.log({f"{wandb_params['name_wandb']}/iwae_loss": loss})
 
-        if batch_idx == 0:
-            logging.info(
-                f"[Epoch {epoch:03d} | Batch {batch_idx:04d}] "
-                f"IWAE-loss {loss.item():.4f} "
-                f"| mean log_px {(log_px.mean()).item():.4f} "
-                f"| KL {kl.item():.2f}"
-            )
+        logging.info(
+            f"[Epoch {epoch:03d} | Batch {batch_idx:04d}] "
+            f"IWAE-loss {loss.item():.4f} "
+            f"| mean log_px {(log_px.mean()).item():.4f} "
+            f"| KL {kl.item():.2f}"
+        )
         return loss
