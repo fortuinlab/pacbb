@@ -8,7 +8,7 @@ from tqdm import tqdm
 import wandb
 from core.distribution.utils import DistributionT, compute_kl
 from core.model import bounded_call
-from core.objective import AbstractObjective
+from core.objective import AbstractObjective, IWAEObjective
 
 
 def __raise_exception_on_invalid_value(value: torch.Tensor):
@@ -75,9 +75,13 @@ def train(
         None: The model (and its posterior) are updated in-place over the specified epochs.
     """
     criterion = torch.nn.NLLLoss()
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=parameters["lr"], momentum=parameters["momentum"]
-    )
+    #optimizer = torch.optim.SGD(
+    #    model.parameters(), lr=parameters["lr"], momentum=parameters["momentum"]
+    #)
+
+    optimizer = torch.optim.Adam(model.parameters(),
+                                 lr=parameters['lr'])
+    dataset_size = len(train_loader.dataset)
 
     if "seed" in parameters:
         torch.manual_seed(parameters["seed"])
@@ -89,11 +93,25 @@ def train(
                 output = bounded_call(model, data, parameters["pmin"])
             else:
                 output = model(data)
-            kl = compute_kl(posterior, prior)
-            loss = criterion(output, target)
-            objective_value = objective.calculate(loss, kl, parameters["num_samples"])
+            if isinstance(objective, IWAEObjective):
+                objective_value = objective.calculate(model,
+                                                      data,
+                                                      target,
+                                                      epoch=epoch,
+                                                      batch_idx=_i,
+                                                      dataset_size=dataset_size,
+                                                      pmin=parameters.get('pmin', None),
+                                                      wandb_params=wandb_params)
+                with torch.no_grad():
+                    loss = criterion(model(data), target)
+                    kl = compute_kl(posterior, prior)
+            else:
+                kl = compute_kl(posterior, prior)
+                loss = criterion(output, target)
+                objective_value = objective.calculate(loss, kl, parameters["num_samples"])
             __raise_exception_on_invalid_value(objective_value)
             objective_value.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
             optimizer.step()
         logging.info(
             f"Epoch: {epoch}, Objective: {objective_value}, Loss: {loss}, KL/n: {kl / parameters['num_samples']}"
