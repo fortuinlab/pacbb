@@ -26,28 +26,27 @@ factory:
       dataset: cifar10
       in_channels: 3
   posterior_objective:
-    name: iwae # adapted
+    name: bbb
     params:
-      delta: 0.025
       kl_penalty: 1.0
   prior_objective:
-    name: iwae # adapted
+    name: iwae
     params:
-      delta: 0.025
+      n: 10
       kl_penalty: 0.01
 log_wandb: true
-mcsamples: 3000 # adapted
+mcsamples: 3000
 pmin: 5.0e-05
 posterior:
   training:
     epochs: 1
-    lr: 0.0001 # adapted
+    lr: 0.0001
     momentum: 0.9
     seed: 1135
 prior:
   training:
     epochs: 100
-    lr: 0.0005 # adapted
+    lr: 0.0005
     momentum: 0.95
     seed: 1135
 sigma: 0.01

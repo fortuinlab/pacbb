@@ -13,6 +13,9 @@ class IWAEObjective(AbstractObjective):
     def __init__(self, kl_penalty: float, n: int, temperature: float = 1.0) -> None:
         self.kl_penalty = kl_penalty      # usually 1 / |D|
         self.temperature = temperature
+        self.k=n
+        print(self.temperature)
+        print(self.k)
 
     # -------- helpers to compute log p(w) and log q(w) -------------------
     @staticmethod
@@ -63,9 +66,8 @@ class IWAEObjective(AbstractObjective):
         scale = dataset_size / batch_size           # N / |B|
         log_ws = []                                 # list[k] of scalars
 
-        kl_pen = 1 / dataset_size
-        temp = 1.0
-        self.k = 20
+        temp = self.temperature
+        # self.k = 20
 
         for l in range(self.k):
             # sample w and compute log p(x|w)
@@ -79,7 +81,7 @@ class IWAEObjective(AbstractObjective):
             log_lik = scale * log_px.sum()                               # scalar
 
             # global KL part
-            kl = (self._log_prior(model) - self._log_post(model)) * kl_pen
+            kl = self._log_prior(model) - self._log_post(model)
             log_w = log_lik + temp * kl                      # scalar
             log_ws.append(log_w)
 
