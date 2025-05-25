@@ -67,7 +67,7 @@ class IWAEObjective(AbstractObjective):
         log_ws = []                                 # list[k] of scalars
 
         temp = self.temperature
-        # self.k = 20
+        beta = min(1.0, epoch / 20)
 
         for l in range(self.k):
             # sample w and compute log p(x|w)
@@ -81,7 +81,7 @@ class IWAEObjective(AbstractObjective):
             log_lik = scale * log_px.sum()                               # scalar
 
             # global KL part
-            kl = self._log_prior(model) - self._log_post(model)
+            kl = beta * (self._log_prior(model) - self._log_post(model))
             log_w = log_lik + temp * kl                      # scalar
             log_ws.append(log_w)
 
