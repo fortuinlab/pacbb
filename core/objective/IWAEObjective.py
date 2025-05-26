@@ -14,6 +14,7 @@ class IWAEObjective(AbstractObjective):
         self.kl_penalty = kl_penalty      # usually 1 / |D|
         self.temperature = temperature
         self.k = n
+        logging.debug(f"KL penalty {self.kl_penalty}")
         logging.debug(f"IWAE temperature {self.temperature}")
         logging.debug(f"IWAE k {self.k}")
 
@@ -65,9 +66,6 @@ class IWAEObjective(AbstractObjective):
         scale = dataset_size / batch_size           # N / |B|
         log_ws = []                                 # list[k] of scalars
 
-        temp = self.temperature
-        beta = 0.001
-
         for l in range(self.k):
             # sample w and compute log p(x|w)
             logits = bounded_call(model, data, pmin) if pmin is not None else model(data)
@@ -80,8 +78,8 @@ class IWAEObjective(AbstractObjective):
             log_lik = scale * log_px.sum()                               # scalar
 
             # global KL part
-            kl = beta * (self._log_prior(model) - self._log_post(model))
-            log_w = log_lik + temp * kl                      # scalar
+            kl = self.kl_penalty * (self._log_prior(model) - self._log_post(model))
+            log_w = log_lik + kl                      # scalar
             log_ws.append(log_w)
 
             # -------------------- per-sample logging --------------------
