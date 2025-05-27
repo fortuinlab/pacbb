@@ -24,7 +24,7 @@ from scripts.utils.factory import (
 
 def main(config: dict, config_path: str):
     if config["log_wandb"]:
-        wandb.init(project="pbb_paper", config=config, name=get_wandb_name(config_path))
+        wandb.init(project="pbb_iwae", config=config, name=get_wandb_name(config_path))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Device {device}")
     # Losses
@@ -136,18 +136,18 @@ def main(config: dict, config_path: str):
             },
         )
 
-    _ = certify_risk(
-        model=model,
-        bounds=bounds,
-        losses=losses,
-        posterior=prior,
-        prior=prior_prior,
-        bound_loader=strategy.bound_loader,
-        num_samples_loss=config["mcsamples"],
-        device=device,
-        pmin=config["pmin"],
-        wandb_params={"log_wandb": config["log_wandb"], "name_wandb": "Prior Bound"},
-    )
+    # _ = certify_risk(
+    #     model=model,
+    #     bounds=bounds,
+    #     losses=losses,
+    #     posterior=prior,
+    #     prior=prior_prior,
+    #     bound_loader=strategy.bound_loader,
+    #     num_samples_loss=config["mcsamples"],
+    #     device=device,
+    #     pmin=config["pmin"],
+    #     wandb_params={"log_wandb": config["log_wandb"], "name_wandb": "Prior Bound"},
+    # )
 
     posterior_prior = from_copy(
         dist=prior, distribution=GaussianVariable, requires_grad=False
